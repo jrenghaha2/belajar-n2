@@ -252,15 +252,65 @@
   .toggle-btn.on{background:var(--accent-soft); color:var(--accent); border-color:transparent}
   .hafal-btn.on{background:var(--green-soft); color:var(--green); border-color:transparent}
   .item .marks{margin-left:auto; display:flex; gap:6px; flex:none}
+  /* ===== Furigana per bagian (toggle kelas, tanpa render ulang) ===== */
+  .nf rt{display:none}
+  .nf .fo rt{display:ruby-text}
+  .furi-alt{display:none}
+  .nf .furi-alt{display:inline}
+  .furi-row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 0; border-top:1px dashed var(--border)}
+  .furi-row:first-of-type{border-top:none}
+  /* ===== Tipe soal baru: fill & order ===== */
+  .fill-input{width:100%; min-height:52px; border-radius:10px; border:1px solid var(--border); background:var(--surface); padding:12px 14px; font-size:18px; color:var(--text); font-family:inherit}
+  .fill-input:focus{outline:2px solid var(--accent); outline-offset:1px}
+  .fill-input.ok{border-color:var(--green); background:var(--green-soft)}
+  .fill-input.ng{border-color:var(--red); background:var(--red-soft)}
+  .order-line{min-height:52px; border:1px dashed var(--border); border-radius:10px; padding:10px 12px; font-size:17px; background:var(--canvas); display:flex; flex-wrap:wrap; gap:6px; align-items:center}
+  .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
+  .chip{border:1px solid var(--border); background:var(--surface); border-radius:10px; padding:10px 14px; min-height:44px; font-size:17px; font-weight:600}
+  .chip.used{opacity:.35; pointer-events:none}
   @media (prefers-reduced-motion: reduce){
     *{transition:none !important}
   }
+
+  /* ===== Program N3→N2 ===== */
+  .seg.seg5 button{font-size:13px; padding:0 4px}
+  .path-list{display:flex; flex-direction:column}
+  .path-step{display:flex; gap:12px}
+  .path-rail{display:flex; flex-direction:column; align-items:center; flex:none}
+  .path-dot{width:26px; height:26px; border-radius:50%; background:var(--surface2); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--text2)}
+  .path-step.now .path-dot{background:var(--accent); border-color:var(--accent); color:#fff}
+  .path-step.done .path-dot{background:var(--green); border-color:var(--green); color:#fff}
+  .path-line{width:2px; flex:1; min-height:14px; background:var(--border)}
+  .path-body{flex:1; padding-bottom:16px}
+  .path-body b{font-size:15px}
+  .diag-row{display:flex; flex-direction:column; gap:6px; margin-top:12px}
+  .diag-row .top{display:flex; justify-content:space-between; font-size:15px}
+  .mock-grid{display:grid; grid-template-columns:repeat(6,1fr); gap:8px}
+  .mock-grid button{min-height:44px; border-radius:8px; border:1px solid var(--border); background:var(--surface); font-weight:600; font-size:14px}
+  .mock-grid button.cur{border-color:var(--accent); color:var(--accent)}
+  .mock-grid button.ans{background:var(--green-soft); border-color:transparent; color:var(--green)}
+  .timer{font-variant-numeric:tabular-nums; font-weight:700}
+  .read-body{max-height:320px; overflow-y:auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; font-size:16px; line-height:1.9}
+  .status-tag{font-size:12px; font-weight:700; padding:2px 8px; border-radius:999px; flex:none}
+  .st-weak{background:var(--red-soft); color:var(--red)}
+  .st-new{background:var(--surface2); color:var(--text2)}
+  .st-learning{background:var(--orange-soft); color:var(--orange)}
+  .st-mastered{background:var(--green-soft); color:var(--green)}
+  .kontra-line{display:flex; gap:10px; align-items:baseline; padding:8px 0; border-top:1px dashed var(--border)}
+  .kontra-line:first-of-type{border-top:none}
+  .kontra-line b{flex:none; min-width:118px}
+  .mini-note{font-size:13px; color:var(--text2)}
+  .pack-best{font-size:13px; color:var(--green); font-weight:700}
+  .listen-note{font-size:13px; color:var(--text2); margin-top:8px}
+  .qtype{font-size:12px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:.04em}
+
 </style>
 </head>
 <body>
 <div class="phone">
   <header class="appbar">
     <div class="brand"><span class="logo">日</span> N2 Jago</div>
+    <button class="toggle-btn" id="btnFuri" style="min-height:36px; padding:6px 12px; margin-right:8px" aria-label="Pengaturan furigana" title="Pengaturan furigana">あ</button>
     <span class="pill" id="streakPill" aria-label="Rantai belajar">🔥 <span id="streakNum">0</span> hari</span>
   </header>
 
@@ -269,7 +319,16 @@
     <section class="screen" data-screen="home">
       <div class="greet">
         <h1 id="greeting">Selamat pagi! 👋</h1>
-        <p>Siap lanjutkan persiapan JLPT N2 hari ini?</p>
+        <p id="greetSub">Program belajar N3 → N2, siap dilanjutkan?</p>
+      </div>
+
+      <div class="card tint mt16" id="diagCard">
+        <div id="diagHomeBody"></div>
+      </div>
+
+      <div class="card mt16">
+        <div class="label">Jalur belajar N3 → N2</div>
+        <div class="path-list mt12" id="pathList"></div>
       </div>
 
       <div class="card mt16">
@@ -308,8 +367,8 @@
         <button class="materi" data-go="belajar" data-seg="bunpou">
           <span class="glyph">文</span><b>Bunpou</b><span id="mPolaCount">Pola kalimat</span>
         </button>
-        <button class="materi" data-go="soal">
-          <span class="glyph">題</span><b>Latihan Soal</b><span id="mQuizCount">Paket campuran</span>
+        <button class="materi" data-go="belajar" data-seg="bacaan">
+          <span class="glyph">読</span><b>Bacaan</b><span id="mReadCount">Dokkai N2</span>
         </button>
       </div>
 
@@ -328,10 +387,12 @@
 
     <!-- ============ BELAJAR ============ -->
     <section class="screen" data-screen="belajar">
-      <div class="seg" role="tablist" aria-label="Materi">
+      <div class="seg seg5" role="tablist" aria-label="Materi">
         <button data-bseg="kanji" class="active" role="tab">Kanji</button>
         <button data-bseg="kotoba" role="tab">Kotoba</button>
         <button data-bseg="bunpou" role="tab">Bunpou</button>
+        <button data-bseg="kontras" role="tab">Kontras</button>
+        <button data-bseg="bacaan" role="tab">Bacaan</button>
       </div>
 
       <!-- ====== KANJI ====== -->
@@ -385,7 +446,7 @@
         </div>
 
         <div data-kpanel="list" hidden>
-          <p class="small muted mt16">Tanda <span class="tag green" style="font-size:12px; padding:2px 8px">✓ hafal</span> muncul otomatis setelah kamu menandai kartu.</p>
+          <p class="small muted mt16">Ketuk kanji untuk onyomi/kunyomi + kata turunan. Tanda <span class="tag green" style="font-size:12px; padding:2px 8px">✓ hafal</span> muncul otomatis setelah kamu menandai kartu.</p>
           <div class="list mt12" id="kanjiList"></div>
         </div>
       </div>
@@ -398,36 +459,157 @@
 
       <!-- ====== BUNPOU ====== -->
       <div data-bpanel="bunpou" hidden>
-        <p class="small muted mt16">Ketuk pola untuk penjelasan + contoh dengan furigana. <span class="lvl n2">N2</span> inti, <span class="lvl n3">N3</span> pendukung.</p>
+        <p class="small muted mt16">Ketuk pola untuk penjelasan lengkap: 接続, nuansa, kesalahan umum, pola mirip, contoh ber-furigana. <span class="lvl n2">N2</span> inti, <span class="lvl n3">N3</span> fondasi.</p>
         <div class="list mt12" id="polaList"></div>
+      </div>
+
+      <!-- ====== KONTRAS ====== -->
+      <div data-bpanel="kontras" hidden>
+        <p class="small muted mt16">Kelompok pola yang sering tertukar. Pelajari perbedaan nuansanya, lalu kerjakan latihannya.</p>
+        <div class="list mt12" id="kontrasList"></div>
+      </div>
+
+      <!-- ====== BACAAN ====== -->
+      <div data-bpanel="bacaan" hidden>
+        <div id="readMenu">
+          <p class="small muted mt16">Baca teksnya, jawab soal pemahaman: ide utama, detail, alasan, inferensi, tujuan penulis.</p>
+          <div class="list mt12" id="readList"></div>
+          <div class="card mt24">
+            <div class="label">🎧 TTS Listening Practice</div>
+            <p class="small muted mt8">Dibacakan text-to-speech Jepang bawaan perangkatmu (bukan audio JLPT resmi). Transkrip tersembunyi sampai kamu menjawab.</p>
+            <div id="listenBox" class="mt12"></div>
+          </div>
+        </div>
+        <div id="readView" hidden>
+          <button class="toggle-btn" id="readBack">← Semua bacaan</button>
+          <h2 class="section mt16" id="readTitle"></h2>
+          <div class="row mt8" id="readMeta"></div>
+          <div class="read-body mt12" id="readBody"></div>
+          <div id="readQuiz" class="mt16"></div>
+        </div>
       </div>
     </section>
 
-    <!-- ============ LATIHAN SOAL ============ -->
+    <!-- ============ SOAL (PUSAT LATIHAN) ============ -->
     <section class="screen" data-screen="soal">
-      <div class="row between">
-        <span class="label">Paket campuran · N2</span>
-        <span class="small muted" id="qCounter">Soal 1</span>
+      <div id="packMenu">
+        <div class="label">Pusat latihan</div>
+        <p class="small muted mt8">Pilih paket sesuai tahap belajarmu. Setiap jawaban salah dicatat untuk review adaptif.</p>
+        <div class="list mt12" id="packList"></div>
+        <div class="card tint mt16">
+          <div class="label">N2 模擬試験</div>
+          <div class="mt8" style="font-weight:700; font-size:17px">Mini Mock N2 (tanpa listening)</div>
+          <div class="small muted mt8">Mini Mock - 24 soal - 25 menit - hasil berupa Practice Score</div>
+          <button class="btn btn-primary btn-block mt12" id="btnMock">Mulai simulasi</button>
+          <div class="small muted mt8" id="mockBestLine"></div>
+        </div>
       </div>
-      <div class="bar mt8"><i id="qBar"></i></div>
 
-      <div id="quizBody">
+      <div id="quizRun" hidden>
+        <div class="row between">
+          <span class="label" id="qPackName">Paket</span>
+          <span class="small muted" id="qCounter">Soal 1</span>
+        </div>
+        <div class="bar mt8"><i id="qBar"></i></div>
+        <div id="quizBody">
+          <div class="card mt16">
+            <p class="qtype" id="qType"></p>
+            <p class="q-sentence mt8" id="qText"></p>
+            <div class="opts" id="qOpts"></div>
+          </div>
+          <div class="explain" id="qExplain" hidden>
+            <b>Pembahasan</b>
+            <p class="mt8" id="qExplainText"></p>
+            <button class="btn btn-primary btn-block mt12" id="qNext">Soal berikutnya</button>
+          </div>
+        </div>
+        <div class="card done mt16" id="quizDone" hidden>
+          <div class="big">📝</div>
+          <h2 class="section mt8" id="quizScoreTitle">Skor kamu</h2>
+          <p class="muted small mt8" id="quizScoreSub"></p>
+          <button class="btn btn-primary btn-block mt16" id="quizRetry">Ulangi paket ini</button>
+          <button class="btn btn-outline btn-block mt12" id="quizBack">Pilih paket lain</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIAGNOSTIC TEST ============ -->
+    <section class="screen" data-screen="diag">
+      <div id="diagIntro">
+        <h2 class="section">🧭 Tes Diagnostik N3 → N2</h2>
+        <p class="small muted mt8">24 soal, sekitar 7 menit - Kanji, Kosakata, dan Grammar N3 &amp; N2. Bukan tes lulus/gagal: ini hasil diagnostik awal (indikasi kemampuan) untuk memetakan rekomendasi materi yang tepat.</p>
         <div class="card mt16">
-          <p class="q-sentence" id="qText"></p>
-          <div class="opts" id="qOpts"></div>
+          <div class="label">Yang diukur</div>
+          <div class="small mt8">N3: Kanji · Kosakata · Grammar</div>
+          <div class="small">N2: Kanji · Kosakata · Grammar</div>
         </div>
-        <div class="explain" id="qExplain" hidden>
-          <b>Pembahasan</b>
-          <p class="mt8" id="qExplainText"></p>
-          <button class="btn btn-primary btn-block mt12" id="qNext">Soal berikutnya</button>
+        <button class="btn btn-primary btn-block mt16" id="btnDiagStart">Mulai tes</button>
+        <button class="btn btn-outline btn-block mt12" data-goscreen="home">Nanti saja</button>
+      </div>
+      <div id="diagRun" hidden>
+        <div class="row between">
+          <span class="label" id="dCat">N3 · Kanji</span>
+          <span class="small muted" id="dCounter"></span>
+        </div>
+        <div class="bar mt8"><i id="dBar"></i></div>
+        <div class="card mt16">
+          <p class="q-sentence" id="dText"></p>
+          <div class="opts" id="dOpts"></div>
         </div>
       </div>
+      <div id="diagResult" hidden>
+        <h2 class="section">Profil kemampuanmu</h2>
+        <p class="small muted mt8">Indikasi awal dari jawaban tesmu barusan - 4 soal per kategori, bukan pengukuran presisi.</p>
+        <div class="card mt12" id="diagBars"></div>
+        <div class="explain mt16"><b>Rekomendasi</b><p class="mt8" id="diagReco"></p></div>
+        <button class="btn btn-primary btn-block mt16" id="btnDiagDone">Lihat jalur belajar</button>
+        <button class="btn btn-outline btn-block mt12" id="btnDiagRetake">Ulangi tes</button>
+      </div>
+    </section>
 
-      <div class="card done mt16" id="quizDone" hidden>
-        <div class="big">📝</div>
-        <h2 class="section mt8" id="quizScoreTitle">Skor kamu</h2>
-        <p class="muted small mt8" id="quizScoreSub"></p>
-        <button class="btn btn-primary btn-block mt16" id="quizRetry">Ulangi paket soal</button>
+    <!-- ============ MOCK TEST ============ -->
+    <section class="screen" data-screen="mock">
+      <div id="mockIntro">
+        <h2 class="section">🏁 N2 模擬試験</h2>
+        <p class="small muted mt8">24 soal · timer 25 menit. Bagian: 文字・語彙 (8 soal), 文法 (10 soal), 読解 (6 soal). Listening tidak dihitung. Hasil berupa Practice Score + analisis kelemahan, bukan prediksi skor resmi JLPT.</p>
+        <button class="btn btn-primary btn-block mt16" id="btnMockStart">Mulai (timer langsung berjalan)</button>
+        <button class="btn btn-outline btn-block mt12" data-goscreen="soal">Kembali</button>
+      </div>
+      <div id="mockRun" hidden>
+        <div class="row between">
+          <span class="label" id="mSec">文字・語彙</span>
+          <span class="timer" id="mTimer">25:00</span>
+        </div>
+        <div class="row between mt8">
+          <span class="small muted" id="mCounter"></span>
+          <button class="toggle-btn" id="mReview">☰ Review</button>
+        </div>
+        <div class="bar mt8"><i id="mBar"></i></div>
+        <div class="card mt16">
+          <p class="q-sentence" id="mText"></p>
+          <div class="opts" id="mOpts"></div>
+        </div>
+        <div class="fc-actions" style="grid-template-columns:1fr 1fr 1fr">
+          <button class="btn btn-outline" id="mPrev">←</button>
+          <button class="btn btn-outline" id="mSkip">Skip</button>
+          <button class="btn btn-primary" id="mNext">→</button>
+        </div>
+        <div class="card mt16" id="mGridCard" hidden>
+          <div class="label">Review soal</div>
+          <div class="mock-grid mt12" id="mGrid"></div>
+        </div>
+        <button class="btn btn-green btn-block mt16" id="mSubmit">Kumpulkan jawaban</button>
+      </div>
+      <div id="mockResult" hidden>
+        <div class="card done">
+          <div class="big">🏁</div>
+          <h2 class="section mt8">Practice Score: <span id="mScore"></span></h2>
+          <p class="muted small mt8">Estimasi performa latihan — bukan skor resmi JLPT.</p>
+        </div>
+        <div class="card mt16"><div class="label">Breakdown per bagian</div><div id="mBreak" class="mt4"></div></div>
+        <div class="card mt16"><div class="label">Analisis kelemahan</div><div id="mWeak" class="mt8"></div></div>
+        <button class="btn btn-orange btn-block mt16" id="mWeakBtn">🎯 Latihan kelemahan dari simulasi</button>
+        <button class="btn btn-outline btn-block mt12" id="mHome">Kembali ke pusat latihan</button>
       </div>
     </section>
 
@@ -446,7 +628,12 @@
         </div>
 
         <div class="card mt16">
-          <div class="label">Statistik penguasaan</div>
+          <div class="label">Progres akademik</div>
+          <div class="mt4" id="acadBars"></div>
+        </div>
+
+        <div class="card mt16">
+          <div class="label">Statistik penguasaan materi</div>
           <div class="statbar">
             <div class="top"><span>Kanji</span><b id="pctKanji">0%</b></div>
             <div class="bar"><i id="barKanji"></i></div>
@@ -463,6 +650,13 @@
             <div class="top"><span>Latihan soal</span><b id="pctSoal">0%</b></div>
             <div class="bar"><i id="barSoal"></i></div>
           </div>
+        </div>
+
+        <div class="card mt16">
+          <div class="label">Riwayat kesalahan</div>
+          <p class="small muted mt8">Pola yang paling sering kamu lewati — inilah peta kelemahanmu.</p>
+          <div id="errList" class="mt8"></div>
+          <button class="btn btn-orange btn-block mt12" id="btnWeak">🎯 Latihan kelemahan saya</button>
         </div>
 
         <div class="label mt24">Ringkasan minggu ini</div>
@@ -523,26 +717,23 @@
 </div>
 
 <div class="scrim" id="scrim"></div>
-<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Detail kata">
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Detail">
   <div class="grab"></div>
-  <span class="tag">JLPT N2</span>
-  <div class="mt12" style="font-size:40px; font-weight:700; line-height:1.2" id="sheetWord"></div>
-  <div style="font-size:20px; color:var(--accent); font-weight:600" class="mt8" id="sheetReading"></div>
-  <div style="font-size:18px" class="mt8" id="sheetMeaning"></div>
-  <div class="label mt16">Contoh kalimat</div>
-  <div class="ex-box mt8">
-    <div id="sheetEx"></div>
-    <div class="example-id" id="sheetExId"></div>
-  </div>
-  <div class="ex-box mt8" id="sheetExBox2">
-    <div id="sheetEx2"></div>
-    <div class="example-id" id="sheetExId2"></div>
-  </div>
+  <div id="sheetContent"></div>
   <button class="btn btn-outline btn-block mt16" id="sheetClose">Tutup</button>
 </div>
 
+<div class="scrim" id="furiScrim"></div>
+<div class="sheet" id="furiSheet" role="dialog" aria-modal="true" aria-label="Pengaturan furigana">
+  <div class="grab"></div>
+  <h2 class="section">Pengaturan Furigana</h2>
+  <p class="small muted mt8">Atur furigana per bagian, masing-masing independen. Furigana hanya tampil pada konten yang punya data ruby akurat; konten tanpa data ruby dibiarkan polos, tidak ditebak.</p>
+  <div id="furiList" class="mt12"></div>
+  <button class="btn btn-outline btn-block mt16" id="furiClose">Tutup</button>
+</div>
+
 <script>
-/* ================= DATA JLPT N2 ================= */
+/* ================= DATA (dipertahankan dari versi sebelumnya) ================= */
 const KANJI = [
   {id:'k1', k:'曖昧', r:'あいまい', m:'samar, ambigu', ex:'彼の返事は曖昧だ。', exi:'Jawabannya samar.'},
   {id:'k2', k:'複雑', r:'ふくざつ', m:'rumit, kompleks', ex:'この問題は複雑だ。', exi:'Masalah ini rumit.'},
@@ -665,6 +856,7 @@ const KANJI = [
   {id:'k119', k:'接続', r:'せつぞく', m:'koneksi', ex:'ネットに接続できない。', exi:'Tidak bisa tersambung ke internet.'},
   {id:'k120', k:'検索', r:'けんさく', m:'pencarian', ex:'言葉の意味を検索する。', exi:'Mencari arti kata.'},
 ];
+
 const KATA = [
   {id:'w1', w:'励ます', r:'はげます', m:'menyemangati', ex:'落ち込んでいる友達を励ました。', exi:'Menyemangati teman yang sedang murung.', ex2:'先生は生徒を励ました。', exi2:'Guru menyemangati murid.'},
   {id:'w2', w:'憧れる', r:'あこがれる', m:'mendambakan, mengidolakan', ex:'都会の生活に憧れる。', exi:'Mendambakan hidup di kota.', ex2:'彼女は歌手に憧れている。', exi2:'Dia mengidolakan penyanyi itu.'},
@@ -767,6 +959,7 @@ const KATA = [
   {id:'w99', w:'断定', r:'だんてい', m:'penegasan', ex:'原因は断定できない。', exi:'Penyebabnya belum bisa dipastikan.', ex2:'断定を避けた方がいい。', exi2:'Sebaiknya menghindari penegasan.'},
   {id:'w100', w:'検証', r:'けんしょう', m:'verifikasi', ex:'仮説を検証する。', exi:'Memverifikasi hipotesis.', ex2:'検証の結果、正しかった。', exi2:'Hasil verifikasinya benar.'},
 ];
+
 const POLA = [
   {id:'p1', lv:'N2', p:'〜ざるを得ない', m:'terpaksa harus ~', d:'Menyatakan tidak ada pilihan lain selain melakukan hal itu.',
    ex:'<ruby>雨<rt>あめ</rt></ruby>なので、<ruby>試合<rt>しあい</rt></ruby>は<ruby>中止<rt>ちゅうし</rt></ruby>せざるを<ruby>得<rt>え</rt></ruby>ない。', exi:'Karena hujan, pertandingan terpaksa dibatalkan.',
@@ -949,40 +1142,407 @@ const POLA = [
    ex:'<ruby>立<rt>た</rt></ruby>ち<ruby>上<rt>あ</rt></ruby>がったとたんに<ruby>倒<rt>たお</rt></ruby>れた。', exi:'Begitu berdiri langsung jatuh.',
    ex2:'<ruby>家<rt>いえ</rt></ruby>に<ruby>着<rt>つ</rt></ruby>いたとたんに<ruby>雨<rt>あめ</rt></ruby>が<ruby>降<rt>ふ</rt></ruby>った。', exi2:'Begitu sampai rumah langsung hujan.'},
 ];
-const QUIZ = [
-  {q:'この仕事は給料が安い____、やりがいがある。', opts:['だけに','わりに','ばかりに','くせに'], a:1,
-   d:'「〜わりに」dipakai saat kenyataan tidak sebanding dengan perkiraan umum. Artinya: meskipun gajinya kecil, pekerjaan ini memuaskan.'},
-  {q:'彼の説明はいつも「曖昧」だ。Bacaan yang tepat adalah…', opts:['あいめい','ぞんまい','あいまい','げんまい'], a:2,
-   d:'曖昧 dibaca あいまい, artinya samar atau tidak jelas.'},
-  {q:'電車が遅れたので、約束の時間に遅れざるを____。', opts:['限らない','過ぎない','足りない','得ない'], a:3,
-   d:'「〜ざるを得ない」berarti terpaksa harus ~. Karena kereta terlambat, terpaksa terlambat dari waktu janji.'},
-  {q:'「紛らわしい」artinya adalah…', opts:['menjengkelkan','membingungkan','memalukan','melelahkan'], a:1,
-   d:'紛らわしい (まぎらわしい) berarti membingungkan atau mudah tertukar.'},
-  {q:'顔色が悪い。彼は疲れている____。', opts:['わけがない','どころか','に違いない','ばかりか'], a:2,
-   d:'「〜に違いない」menyatakan kesimpulan dengan yakin: dia pasti lelah karena mukanya pucat.'},
-  {q:'「寛容」の読み方は…', opts:['かんじょう','がんよう','こうよう','かんよう'], a:3,
-   d:'寛容 dibaca かんよう, artinya toleran atau berlapang dada.'},
-  {q:'この調査は10年____行われた。', opts:['に対して','にわたって','にとって','に反して'], a:1,
-   d:'「〜にわたって」menyatakan jangkauan waktu yang luas: penelitian berlangsung selama 10 tahun.'},
-  {q:'「諦める」artinya adalah…', opts:['berusaha','melanjutkan','mengulangi','menyerah'], a:3,
-   d:'諦める (あきらめる) berarti menyerah atau berhenti berharap.'},
-  {q:'彼は頭がいい____、性格もいい。', opts:['どころか','ものの','ばかりか','あげく'], a:2,
-   d:'「〜ばかりか」berarti bukan hanya ~ bahkan ~: dia bukan hanya pintar, sifatnya juga baik.'},
-  {q:'一度引き受けた____、最後までやるべきだ。', opts:['ばかりか','からには','ことか','わけではない'], a:1,
-   d:'「〜からには」berarti karena sudah ~: karena sudah menerima, harus diselesaikan sampai akhir.'},
-  {q:'「詐欺」の読み方は…', opts:['さき','ざぎ','さぎ','しぎ'], a:2,
-   d:'詐欺 dibaca さぎ, artinya penipuan.'},
-  {q:'駅でうっかり財布を____しまった。', opts:['拾って','落として','隠して','捨てて'], a:1,
-   d:'「落とす」berarti menjatuhkan/kehilangan. Karena うっかり (tanpa sengaja), dompetnya terjatuh di stasiun.'},
-  {q:'「柔軟」の読み方は…', opts:['じゅなん','にゅうなん','しゅうなん','じゅうなん'], a:3,
-   d:'柔軟 dibaca じゅうなん, artinya fleksibel.'},
-  {q:'「我慢する」artinya adalah…', opts:['berbicara kasar','menahan diri','melupakan','membuang waktu'], a:1,
-   d:'我慢する (がまんする) berarti menahan diri atau bersabar.'},
+
+/* ===== Pengayaan Kanji: on/kun + kata turunan ===== */
+const KDETAIL = {
+  k1:{c:'曖 あい / 昧 まい', w:[['曖昧な態度','あいまいなたいど','sikap yang samar'],['曖昧にする','あいまいにする','menyamarkan sesuatu']]},
+  k2:{c:'複 ふく / 雑 ざつ', w:[['複数','ふくすう','jamak'],['雑誌','ざっし','majalah'],['複雑化','ふくざつか','menjadi rumit']]},
+  k3:{c:'妥 だ / 協 きょう', w:[['協力','きょうりょく','kerja sama'],['協定','きょうてい','persetujuan resmi'],['妥結','だけつ','sepakat setelah negosiasi']]},
+  k4:{c:'貢 こう / 献 けん', w:[['献立','こんだて','menu masakan'],['貢献度','こうけんど','tingkat kontribusi']]},
+  k5:{c:'余 よ / 裕 ゆう', w:[['余る','あまる','bersisa'],['余計','よけい','berlebihan'],['余分','よぶん','cadangan']]},
+  k6:{c:'矛 む / 盾 じゅん', w:[['盾になる','たてになる','menjadi tameng'],['矛先','ほこさき','arah serangan/kritik']]},
+  k7:{c:'把 は / 握 あく', w:[['握手','あくしゅ','jabat tangan'],['握る','にぎる','menggenggam']]},
+  k8:{c:'犠 ぎ / 牲 せい', w:[['犠牲者','ぎせいしゃ','korban'],['犠牲になる','ぎせいになる','menjadi korban']]},
+  k9:{c:'詳 しょう / 細 さい', w:[['詳しい','くわしい','rinci'],['細かい','こまかい','detail, halus'],['詳説','しょうせつ','penjelasan rinci']]},
+  k10:{c:'検 けん / 討 とう', w:[['検査','けんさ','pemeriksaan'],['討論','とうろん','debat'],['検索','けんさく','pencarian']]},
+  k11:{c:'徹 てつ / 底 てい', w:[['徹夜','てつや','begadang'],['底','そこ','dasar'],['徹する','てっする','mendedikasikan diri']]},
+  k12:{c:'緊 きん / 張 ちょう', w:[['緊急','きんきゅう','darurat'],['張る','はる','meregang'],['引っ張る','ひっぱる','menarik']]},
+  k13:{c:'頻 ひん / 繁 はん', w:[['頻度','ひんど','frekuensi'],['繁栄','はんえい','kemakmuran'],['頻繁に','ひんぱんに','secara sering']]},
+  k14:{c:'誇 こ / 張 ちょう', w:[['誇る','ほこる','membanggakan'],['誇大','こだい','berlebihan (skala)']]},
+  k15:{c:'詐 さ / 欺 ぎ', w:[['欺く','あざむく','menipu'],['詐取','さしゅ','penipuan (perampasan)']]},
+  k16:{c:'脅 きょう / 威 い', w:[['脅す','おどす','mengancam'],['威厳','いげん','wibawa'],['脅迫','きょうはく','intimidasi']]},
+  k17:{c:'迅 じん / 速 そく', w:[['速い','はやい','cepat'],['速度','そくど','kecepatan'],['速達','そくたつ','surat kilat']]},
+  k18:{c:'勤 きん / 勉 べん', w:[['勤める','つとめる','bekerja'],['勉強','べんきょう','belajar'],['通勤','つうきん','perjalanan kerja']]},
+  k19:{c:'謙 けん / 虚 きょ', w:[['謙譲','けんじょう','merendahkan diri (formal)'],['虚しい','むなしい','hampa']]},
+  k20:{c:'傲 ごう / 慢 まん', w:[['自慢','じまん','pamer'],['慢心','まんしん','terlalu percaya diri']]},
+  k21:{c:'寛 かん / 容 よう', w:[['寛ぐ','くつろぐ','bersantai'],['容認','ようにん','mengizinkan'],['内容','ないよう','isi']]},
+  k22:{c:'敏 びん / 感 かん', w:[['感じる','かんじる','merasakan'],['感謝','かんしゃ','terima kasih'],['感動','かんどう','terharu']]},
+  k23:{c:'柔 じゅう / 軟 なん', w:[['柔らかい','やわらかい','lembut'],['柔道','じゅうどう','judo'],['軟化','なんか','melunak']]},
+  k24:{c:'頑 がん / 固 こ', w:[['頑張る','がんばる','berusaha keras'],['固い','かたい','keras'],['頑丈','がんじょう','kokoh']]},
+  k25:{c:'残 ざん / 酷 こく', w:[['残る','のこる','tersisa'],['残念','ざんねん','sayang sekali'],['酷い','ひどい','kejam, parah']]},
+  k26:{c:'節 せつ / 約 やく', w:[['約束','やくそく','janji'],['季節','きせつ','musim'],['予約','よやく','reservasi']]},
+  k27:{c:'浪 ろう / 費 ひ', w:[['費用','ひよう','biaya'],['消費','しょうひ','konsumsi'],['浪費家','ろうひか','pemboros']]},
+  k28:{c:'収 しゅう / 穫 かく', w:[['収入','しゅうにゅう','pemasukan'],['収める','おさめる','mendapatkan'],['獲得','かくとく','memperoleh']]},
+  k29:{c:'推 すい / 薦 せん', w:[['推測','すいそく','dugaan'],['推薦状','すいせんじょう','surat rekomendasi'],['推す','おす','merekomendasikan']]},
+  k30:{c:'採 さい / 用 よう', w:[['採る','とる','mengambil'],['利用','りよう','pemanfaatan'],['採点','さいてん','menilai ujian']]},
+};
+
+/* ===== Pengayaan Kotoba: kolokasi, sinonim, register ===== */
+const KCOL = {
+  w1:{col:[['友人を励ます','menyemangati teman'],['声をかけて励ます','menyemangati dengan sapaan']], syn:'元気づける', reg:'Netral'},
+  w3:{col:[['夢を諦める','menyerah pada mimpi'],['途中で諦める','menyerah di tengah jalan']], ant:'続ける / 貫く', mix:'断念する = lebih formal'},
+  w4:{col:[['商品を扱う','menjual produk'],['テーマを扱う','mengangkat tema'],['人を丁寧に扱う','memperlakukan orang dengan baik']], reg:'Netral'},
+  w5:{col:[['目を疑う','tak percaya pada mata sendiri'],['真実を疑う','meragukan kebenaran']], ant:'信じる'},
+  w6:{col:[['信頼を裏切る','mengkhianati kepercayaan'],['仲間を裏切る','mengkhianati teman']], ant:'忠実である'},
+  w7:{col:[['誘いを断る','menolak ajakan'],['申し出を断る','menolak tawaran']], ant:'受ける', reg:'Netral'},
+  w9:{col:[['人混みを避ける','menghindari keramaian'],['話題を避ける','menghindari topik'],['リスクを避ける','menghindari risiko']], ant:'向き合う'},
+  w10:{col:[['家族を支える','menopang keluarga'],['屋根を支える','menopang atap'],['活動を支える','mendukung kegiatan']], syn:'支持する'},
+  w12:{col:[['休日を過ごす','menghabiskan liburan'],['時間を過ごす','menghabiskan waktu'],['夜を過ごす','melewati malam']]},
+  w13:{col:[['新しい方法を試みる','mencoba metode baru'],['改革を試みる','mencoba reformasi']], syn:'試す', reg:'Agak formal / tertulis'},
+  w18:{col:[['財布を盗む','mencuri dompet'],['人目を盗む','diam-diam, menghindari mata orang']]},
+  w20:{col:[['痛みを我慢する','menahan sakit'],['怒りを我慢する','menahan marah']], syn:'耐える', mix:'耐える = tahan terhadap kondisi; 我慢する = menahan dorongan/emosi'},
+  w22:{col:[['慎重に進める','maju dengan hati-hati'],['慎重な態度','sikap hati-hati']], ant:'軽率'},
+  w25:{col:[['派手な服','pakaian mencolok'],['派手な演出','penampilan meriah']], ant:'地味'},
+  w26:{col:[['地味な色','warna kalem'],['地味な作業','pekerjaan tidak mencolok']], ant:'派手'},
+  w28:{col:[['無謀な計画','rencana gegabah'],['無謀な挑戦','tantangan nekat']], ant:'慎重'},
+  w32:{col:[['慌ただしい朝','pagi yang sibuk'],['慌ただしく過ごす','melewati dengan tergesa-gesa']]},
+  w34:{col:[['悔しい思いをする','merasakan kekesalan'],['負けて悔しい','kesal karena kalah']]},
+  w41:{col:[['誤解を解く','meluruskan salah paham'],['誤解を招く','mengundang salah paham'],['誤解される','disalahpahami']]},
+  w46:{col:[['遠慮なく言う','bilang tanpa sungkan'],['遠慮する','menahan diri / sungkan']], reg:'Sopan'},
+  w52:{col:[['一旦中止する','dihentikan sementara'],['一旦帰宅する','pulang dulu untuk sementara']], reg:'Agak formal'},
+  w54:{col:[['必ずしも正しくない','tidak selalu benar'],['必ずしもそうとは限らない','tidak selalu demikian']], reg:'Selalu dipasangkan dengan bentuk negatif'},
+  w57:{col:[['徐々に回復する','pulih perlahan'],['徐々に増える','bertambah perlahan']], syn:'だんだん (lebih kasual)'},
+  w59:{col:[['うっかり忘れる','lupa tanpa sengaja'],['うっかり話す','keceplosan']]},
+  w60:{col:[['ぐっすり眠る','tidur nyenyak'],['ぐっすり眠れる','bisa tidur nyenyak']]},
+  w65:{col:[['返事を促す','mendesak balasan'],['注意を促す','mengingatkan'],['成長を促す','mendorong pertumbuhan']], reg:'Agak formal'},
+  w66:{col:[['責任を伴う','disertai tanggung jawab'],['痛みを伴う','disertai rasa sakit'],['変化に伴う','menyertai perubahan']], reg:'Agak formal'},
+  w67:{col:[['仕事に携わる','terlibat dalam pekerjaan'],['教育に携わる','berkecimpung di pendidikan']], reg:'Formal'},
+  w68:{col:[['時間を費やす','menghabiskan waktu'],['お金を費やす','menghabiskan uang'],['労力を費やす','menguras tenaga']]},
+  w69:{col:[['手間を省く','menghemat tenaga/kerja'],['工程を省く','menghilangkan proses']], reg:'Agak formal'},
+  w70:{col:[['税を含む','termasuk pajak'],['意図を含む','mengandung maksud']]},
+  w72:{col:[['事実に基づく','berdasar fakta'],['経験に基づく','berdasar pengalaman']], reg:'Agak formal'},
+  w74:{col:[['人数を限る','membatasi jumlah'],['期間を限る','membatasi periode'],['〜に限る','paling cocok adalah ~ (idiom)']]},
+  w77:{col:[['裁判所に訴える','menggugat ke pengadilan'],['痛みを訴える','mengeluhkan sakit'],['平和を訴える','menyerukan perdamaian']]},
+};
+
+/* ===== Pengayaan Bunpou: 接続, nuansa, kesalahan umum, pola mirip ===== */
+const POLA_EXTRA = {
+  p1:{setsu:'Vない → Vざるを得ない（例外: する → せざるを得ない）', nua:'Terpaksa karena tidak ada pilihan lain; bernuansa formal/tertulis.', miss:'✗ するざるを得ない → ✓ せざるを得ない', simi:'〜なければならない = kewajiban umum; 〜しかない = lebih kasual, "cuma bisa"'},
+  p2:{setsu:'Bentuk biasa (V/A/AN/N) + に違いない', nua:'Keyakinan kuat berdasarkan bukti; lebih objektif daripada 〜はず.', miss:'Jangan dipakai untuk dugaan tanpa bukti — gunakan 〜ようだ / らしい.', simi:'〜はずだ / 〜に決まっている / 〜わけだ'},
+  p3:{setsu:'Bentuk biasa + わけではない', nua:'Menyangkal SEBAGIAN — "bukan berarti sepenuhnya ~".', miss:'Beda dengan 〜わけがない (mustahil total).', simi:'〜わけがない / 〜わけにはいかない / 〜わけだ'},
+  p4:{setsu:'Bentuk biasa + ばかりか', nua:'Penambahan yang mengejutkan; bisa positif maupun negatif.', miss:'Jangan tertukar dengan 〜どころか (yang menyangkal hal pertama).', simi:'〜だけでなく / 〜どころか'},
+  p5:{setsu:'Bentuk biasa + ことか（sering dengan どんなに / どれほど）', nua:'Seruan perasaan mendalam; nuansa tertulis/sastra.', miss:'Bukan untuk pertanyaan biasa.', simi:'〜なんて / 〜ことだろう'},
+  p6:{setsu:'Bentuk biasa + わけがない', nua:'Mustahil secara logika — penyangkalan total.', miss:'Beda dengan 〜わけではない (sangkal sebagian).', simi:'〜わけではない / 〜はずがない'},
+  p7:{setsu:'Bentuk biasa + わりに', nua:'Kenyataan melebihi/kurang dari ekspektasi standar ("untuk ukuran ~").', miss:'Bukan perbandingan dua hal spesifik — itu 〜に比べて.', simi:'〜に比べて / 〜にしては'},
+  p8:{setsu:'N + に比べて', nua:'Perbandingan objektif dua hal.', miss:'Jangan dipakai untuk makna "untuk ukuran" — itu 〜わりに.', simi:'〜わりに / 〜より'},
+  p9:{setsu:'N + に対して', nua:'Arah sikap/tindakan; juga kontras "sedangkan".', miss:'〜に対して (target) ≠ 〜にとって (sudut pandang).', simi:'〜にとって / 〜について'},
+  p10:{setsu:'N + にとって', nua:'Sudut pandang / posisi si penilai.', miss:'Bukan target tindakan — itu 〜に対して.', simi:'〜に対して / 〜として'},
+  p11:{setsu:'N + によって', nua:'Pelaku pasif formal / cara / "berbeda tergantung".', miss:'Pasif sehari-hari cukup pakai particle に.', simi:'〜による / 〜で'},
+  p12:{setsu:'N + によると', nua:'Mengutip sumber informasi.', miss:'Tidak untuk pengalaman sendiri.', simi:'〜によれば / 〜の話では'},
+  p13:{setsu:'Bentuk biasa + おかげで', nua:'Sebab POSITIF; ada rasa terima kasih.', miss:'Hasil negatif → pakai 〜せいで.', simi:'〜せいで / 〜ため'},
+  p14:{setsu:'Bentuk biasa + せいで', nua:'Sebab NEGATIF; nada menyalahkan.', miss:'Jangan untuk hasil positif.', simi:'〜おかげで / 〜ために'},
+  p15:{setsu:'Vる / N の + おそれがある', nua:'Kemungkinan buruk; formal — berita & peringatan.', miss:'Hanya untuk hal buruk.', simi:'〜かねない / 〜危険がある'},
+  p16:{setsu:'Vます + かねない', nua:'"Bisa saja (berakibat buruk)" — kekhawatiran pembicara.', miss:'Beda arti dengan 〜かねる (tidak dapat).', simi:'〜おそれがある / 〜かもしれない'},
+  p17:{setsu:'Vます + かねる', nua:'Penolakan halus/formal: "tidak dapat ~".', miss:'Kebalikan nuansa 〜かねない.', simi:'〜できない / 〜わけにはいかない'},
+  p18:{setsu:'Vます + がたい', nua:'Sulit secara mental/emosional: 信じがたい, 許しがたい.', miss:'Kesulitan fisik → 〜にくい / 〜づらい.', simi:'〜にくい / 〜づらい'},
+  p19:{setsu:'Vます / N + がち', nua:'Kecenderungan yang agak NEGATIF.', miss:'Bukan untuk kebiasaan positif.', simi:'〜っぽい / 〜気味'},
+  p20:{setsu:'N / Vます + っぽい', nua:'Kesan "-seperti / -nya"; kasual.', miss:'Terlalu kasual untuk tulisan formal.', simi:'〜がち / 〜ような'},
+  p21:{setsu:'Jumlah + ずつ', nua:'Pembagian sama rata.', miss:'Bukan "kira-kira" (それは くらい).', simi:'〜ごとに / 〜おきに'},
+  p22:{setsu:'Vば + Vる + ほど（verba yang sama diulang）', nua:'Perubahan berjenjang yang sebanding.', miss:'Harus verba sama: 読めば読むほど.', simi:'〜ほど / 〜くらい'},
+  p23:{setsu:'Bentuk biasa + ほど', nua:'Tingkat ekstrem: "sampai-sampai ~".', miss:'Beda dengan 〜くらい (netral/perkiraan).', simi:'〜くらい / 〜ば〜ほど'},
+  p24:{setsu:'Bentuk biasa + くらい', nua:'Tingkat/perkiraan; kadang nada meremehkan.', miss:'Sering tertukar dengan ほど — ほど lebih formal/ekstrem.', simi:'〜ほど / 〜ぐらい'},
+  p25:{setsu:'Bentuk biasa + ものの', nua:'"Sudah ~, tetapi (hasil tak sesuai)".', miss:'Beda dengan 〜ものを (penyesalan).', simi:'〜のに / 〜けれど'},
+  p26:{setsu:'Bentuk biasa + ものだ', nua:'Kebenaran umum / nostalgia (〜たものだ).', miss:'Bukan untuk pendapat pribadi sesaat.', simi:'〜べきだ / 〜ことだ'},
+  p27:{setsu:'Vる / Vない + ことだ', nua:'Nasihat lembut: "sebaiknya ~".', miss:'Bukan perintah keras — 〜べきだ lebih tegas.', simi:'〜べきだ / 〜た方がいい'},
+  p28:{setsu:'(kata perasaan) + ことに', nua:'Pembuka perasaan: "yang mengejutkan / sayangnya…".', miss:'Dipakai di AWAL kalimat, bukan akhir.', simi:'〜ことか / 〜のに'},
+  p29:{setsu:'N + に加えて', nua:'Penambahan sejenis; formal.', miss:'Penambahan kasual → 〜し〜し.', simi:'〜ばかりか / 〜だけでなく'},
+  p30:{setsu:'N + に反して', nua:'Berlawanan dengan harapan/aturan.', miss:'Bukan "tentang" (〜について).', simi:'〜に対して / 〜にもかかわらず'},
+  p31:{setsu:'N + にわたって', nua:'Rentang LUAS waktu/wilayah.', miss:'Titik waktu tertentu → particle に.', simi:'〜を通じて / 〜にかけて'},
+  p32:{setsu:'N + をはじめ', nua:'Contoh utama dari banyak hal; formal.', miss:'Versi kasual: 〜とか〜とか.', simi:'〜を中心に / 〜など'},
+  p33:{setsu:'N + をめぐって', nua:'Isu yang diperdebatkan seputar N.', miss:'Bukan sekadar "tentang" yang netral.', simi:'〜について / 〜に関して'},
+  p34:{setsu:'Bentuk biasa + にもかかわらず', nua:'Kontras kuat "padahal"; formal.', miss:'Lebih formal daripada のに.', simi:'〜ものの / 〜のに'},
+  p35:{setsu:'N / bentuk biasa + にすぎない', nua:'Meremehkan: "hanya ~, tidak lebih".', miss:'Murni evaluasi, bukan larangan.', simi:'〜だけ / 〜にほかならない'},
+  p36:{setsu:'N + にほかならない', nua:'Penegasan identitas/sebab: "tidak lain adalah ~".', miss:'Untuk kepastian, bukan kemungkinan.', simi:'〜にすぎない / 〜こそ'},
+  p37:{setsu:'Vる + べきだ（する → すべきだ）', nua:'Kewajiban moral / nasihat tegas.', miss:'Bentuk baku: すべき（するべき umum tapi kurang baku).', simi:'〜なければならない / 〜ことだ'},
+  p38:{setsu:'Vている / N の + 最中に', nua:'"Di tengah-tengah sedang ~" — ada gangguan muncul.', miss:'Bukan "selama" (〜間に).', simi:'〜間に / 〜うちに'},
+  p39:{setsu:'Vます + 次第', nua:'"Segera setelah selesai"; formal/bisnis.', miss:'Beda dengan N次第 (tergantung N).', simi:'〜たらすぐ / N〜次第で'},
+  p40:{setsu:'Bentuk biasa + からには', nua:'"Karena sudah terlanjur ~, harus ~".', miss:'Bukan sebab biasa (〜から).', simi:'〜以上は / 〜上は'},
+  p41:{setsu:'Bentuk biasa + うちに', nua:'Selagi keadaan masih berlaku.', miss:'Beda dengan 間に (titik waktu).', simi:'〜間に / 〜最中に'},
+  p42:{setsu:'Vる / N の + たびに', nua:'"Setiap kali ~".', miss:'Bukan "kadang-kadang" (それは 時々).', simi:'〜ごとに / 〜たび'},
+  p43:{setsu:'N の / Vる + 代わりに', nua:'Pengganti; juga "sebagai kompensasi".', miss:'Bukan "sambil" (〜ながら).', simi:'〜のかわり / 〜に対して'},
+  p44:{setsu:'Jumlah waktu/jarak + おきに', nua:'Interval teratur.', miss:'三日おきに = tiap selang 3 hari (bukan 3 hari berturut).', simi:'〜ごとに / 〜ずつ'},
+  p45:{setsu:'Bentuk biasa + に決まっている', nua:'Keyakinan kuat, kasual/emosional.', miss:'Lebih subjektif daripada に違いない.', simi:'〜に違いない / 〜はずだ'},
+  p46:{setsu:'Bentuk biasa + わけだ', nua:'Kesimpulan logis: "pantas saja / jadi ~".', miss:'Bukan penyangkalan (〜わけではない).', simi:'〜というわけだ / 〜はずだ'},
+  p47:{setsu:'Vる + わけにはいかない', nua:'"Tidak bisa ~ (meski ingin)" karena alasan sosial/posisi.', miss:'Bukan ketidakmampuan fisik (〜できない).', simi:'〜わけではない / 〜かねる'},
+  p48:{setsu:'Vない + ずにはいられない（する → せずにはいられない）', nua:'Tak tahan untuk tidak ~ (emosional).', miss:'✗ しないずには → ✓ せずにはいられない.', simi:'〜ざるを得ない / 〜てたまらない'},
+  p49:{setsu:'Vます + づらい', nua:'Sulit dilakukan (fisik/mental); agak kasual.', miss:'Versi lebih netral/formal: 〜にくい.', simi:'〜にくい / 〜がたい'},
+  p50:{setsu:'Bentuk biasa + かのようだ', nua:'"Seolah-olah ~" (kenyataannya tidak).', miss:'Beda dengan 〜ようだ biasa (kemiripan nyata).', simi:'〜ようだ / 〜みたいだ'},
+  p51:{setsu:'Bentuk biasa + といっても', nua:'"Walaupun dibilang ~, kenyataannya tidak sepenuhnya".', miss:'Bukan kutipan (〜という).', simi:'〜けれど / 〜からといって'},
+  p52:{setsu:'N から N にかけて', nua:'Rentang yang batasnya tidak tegas.', miss:'Batas tegas → から〜まで.', simi:'〜から〜まで / 〜にわたって'},
+  p53:{setsu:'N + をきっかけに', nua:'Pemicu perubahan.', miss:'Bukan sebab langsung (〜ので).', simi:'〜を契機に (lebih formal) / 〜のおかげで'},
+  p54:{setsu:'N + を通じて', nua:'Sarana/perantara; juga "selama (periode)".', miss:'Beda tipis dengan によって (cara/pelaku).', simi:'〜によって / 〜を通して'},
+  p55:{setsu:'N + に沿って', nua:'Mengikuti garis / pedoman / rencana.', miss:'Bukan "dekat" (〜のそば).', simi:'〜に従って / 〜どおりに'},
+  p56:{setsu:'N / Vる + に伴って', nua:'Perubahan paralel: "seiring dengan".', miss:'Mirip につれて — に伴って juga dipakai untuk akibat resmi.', simi:'〜につれて / 〜とともに'},
+  p57:{setsu:'N + に応じて', nua:'Menyesuaikan respons dengan kondisi/permintaan.', miss:'Bukan "menurut sumber" (〜によると).', simi:'〜によって / 〜に従って'},
+  p58:{setsu:'N + に関して', nua:'Topik pembicaraan; formal.', miss:'Versi lebih kasual: 〜について.', simi:'〜について / 〜に対して'},
+  p59:{setsu:'N + をもとに', nua:'Bahan dasar pembuatan sesuatu.', miss:'Bukan "berdasar pendapat orang" (〜によると).', simi:'〜に基づいて / 〜から'},
+  p60:{setsu:'Vた + とたん', nua:'"Begitu ~, langsung ~" (ada kejutan).', miss:'Bukan urutan rutin (〜たら).', simi:'〜た瞬間 / 〜次第'},
+};
+
+/* ===== DIAGNOSTIC TEST: 24 soal, 6 kategori ===== */
+const DIAG_CATS = {n3k:'N3 · Kanji', n3v:'N3 · Kosakata', n3g:'N3 · Grammar', n2k:'N2 · Kanji', n2v:'N2 · Kosakata', n2g:'N2 · Grammar'};
+const DIAG = [
+  {c:'n3k', q:'「改札」の読み方は…', opts:['かいさつ','かいさく','かえさつ','がいさつ'], a:0},
+  {c:'n3k', q:'「地震」の意味は…', opts:['gempa bumi','angin topan','tsunami','banjir'], a:0},
+  {c:'n3k', q:'「包丁」の意味は…', opts:['garpu','pisau dapur','panci','sumpit'], a:1},
+  {c:'n3k', q:'「唇」の読み方は…', opts:['くちびる','くちべに','した','は'], a:0},
+  {c:'n3v', q:'「受付」の意味は…', opts:['loket penerimaan','kasir','gudang','lift'], a:0},
+  {c:'n3v', q:'「家賃」の意味は…', opts:['harga rumah','uang sewa rumah','pajak','biaya listrik'], a:1},
+  {c:'n3v', q:'「睡眠」の意味は…', opts:['makan','tidur','olahraga','belajar'], a:1},
+  {c:'n3v', q:'「面接」の意味は…', opts:['pertemuan','wawancara','perjalanan','perayaan'], a:1},
+  {c:'n3g', q:'暗くならない____、帰りましょう。', opts:['うちに','たびに','おきに','ほどに'], a:0},
+  {c:'n3g', q:'彼に会う____、元気をもらう。', opts:['たびに','ことに','わけに','ものに'], a:0},
+  {c:'n3g', q:'仕事中なので、遊んでいる____。', opts:['わけではない','わけにはいかない','わけがない','はずがない'], a:1},
+  {c:'n3g', q:'三日____、薬を飲んでください。', opts:['ずつ','おきに','たびに','うちに'], a:1},
+  {c:'n2k', q:'「曖昧」の読み方は…', opts:['あいまい','あいめい','あんまい','えまい'], a:0},
+  {c:'n2k', q:'「妥協」の読み方は…', opts:['だきょう','たきょう','だっきょう','たっきょう'], a:0},
+  {c:'n2k', q:'「貢献」の読み方は…', opts:['こうけん','ごうけん','こうげん','ごうげん'], a:0},
+  {c:'n2k', q:'「迅速」の読み方は…', opts:['じんそく','しんそく','じんそう','しんそう'], a:0},
+  {c:'n2v', q:'「促す」の意味は…', opts:['menolak','mendesak, mendorong','menunda','menghapus'], a:1},
+  {c:'n2v', q:'「伴う」の意味は…', opts:['memisahkan','menyertai','menentang','meniru'], a:1},
+  {c:'n2v', q:'「費やす」の意味は…', opts:['menabung','menghabiskan','meminjam','mencuri'], a:1},
+  {c:'n2v', q:'「携わる」の意味は…', opts:['terlibat, berkecimpung','berhenti','menonton','menjual'], a:0},
+  {c:'n2g', q:'顔色が悪い。彼は疲れている____。', opts:['わけがない','に違いない','ばかりか','どころか'], a:1},
+  {c:'n2g', q:'給料が安い____、やりがいがある。', opts:['だけに','わりに','ことに','せいで'], a:1},
+  {c:'n2g', q:'締め切りがあるので、今日中に終わらせ____。', opts:['ざるを得ない','わけではない','にすぎない','ことにする'], a:0},
+  {c:'n2g', q:'雨____、試合は中止になった。', opts:['のおかげで','のせいで','に対して','にとって'], a:1},
 ];
+
+/* ===== CONTRASTIVE GRAMMAR: 6 kelompok pola mirip ===== */
+const CONTRAST = [
+  {id:'g1', title:'わけ系列', desc:'Empat pola わけ yang paling sering tertukar.',
+   items:[
+     ['〜わけだ','Kesimpulan logis: "pantas saja / jadi ~".','10年も住んでいたから、詳しいわけだ。'],
+     ['〜わけではない','Sangkal SEBAGIAN: "bukan berarti ~".','全員が反対しているわけではない。'],
+     ['〜わけがない','Mustahil total: "tidak mungkin ~".','一日で終わるわけがない。'],
+     ['〜わけにはいかない','Tidak bisa (meski ingin) karena keadaan/posisi.','試験前なので遊んでいるわけにはいかない。'],
+   ],
+   qs:[
+     {q:'彼は日本に10年住んでいた。日本語が上手な____。', opts:['わけだ','わけではない','わけがない','わけにはいかない'], a:0, d:'Kesimpulan logis dari fakta (10 tahun tinggal di Jepang) → 〜わけだ.', tags:['p46','p3','p6','p47']},
+     {q:'全員が反対している____。むしろ賛成する人もいる。', opts:['わけだ','わけではない','わけがない','わけにはいかない'], a:1, d:'Menyangkal SEBAGIAN (ada juga yang setuju) → 〜わけではない.', tags:['p3','p46']},
+     {q:'こんな高いもの、学生の私に買える____。', opts:['わけだ','わけではない','わけがない','わけにはいかない'], a:2, d:'Mustahil secara keadaan ekonomi → 〜わけがない (penyangkalan total).', tags:['p6','p3']},
+   ]},
+  {id:'g2', title:'Kepastian', desc:'はずだ / に違いない / に決まっている / わけがない',
+   items:[
+     ['〜はずだ','Ekspektasi logis: "seharusnya ~" berdasarkan rencana/kebiasaan.','彼ならもう着いているはずだ。'],
+     ['〜に違いない','Yakin kuat berdasarkan BUKTI yang terlihat.','顔色が悪い。疲れているに違いない。'],
+     ['〜に決まっている','Yakin dengan nada kasual/emosional.','そんなのは嘘に決まっている。'],
+     ['〜わけがない','Mustahil: penyangkalan total.','彼が犯人なわけがない。'],
+   ],
+   qs:[
+     {q:'彼は毎日必ず来る人だから、今日も来る____。', opts:['はずだ','に違いない','わけがない','ものか'], a:0, d:'Ekspektasi berdasarkan kebiasaan/rencana → 〜はずだ.', tags:['p2','p6']},
+     {q:'顔色が真っ青だ。彼は疲れている____。', opts:['はずだ','に違いない','わけがない','どころか'], a:1, d:'Keyakinan kuat dari bukti yang terlihat (muka pucat) → 〜に違いない.', tags:['p2','p45']},
+     {q:'あのチームは最弱だ。優勝できる____。', opts:['はずだ','に違いない','わけがない','ことだ'], a:2, d:'Mustahil menurut logika → 〜わけがない.', tags:['p6','p2']},
+   ]},
+  {id:'g3', title:'Sebab & Hasil', desc:'ので / から / ため / せいで / おかげで',
+   items:[
+     ['〜ので','Sebab netral dan sopan; aman untuk pengumuman.','雨なので中止します。'],
+     ['〜から','Sebab subjektif/kasual.','疲れたから休む。'],
+     ['〜ため','Sebab formal, atau tujuan (〜のため).','工事のため通行できません。'],
+     ['〜せいで','Sebab NEGATIF; nada menyalahkan.','寝不足のせいで頭が痛い。'],
+     ['〜おかげで','Sebab POSITIF; rasa terima kasih.','先生のおかげで合格した。'],
+   ],
+   qs:[
+     {q:'電車が遅れた____、会議に間に合わなかった。', opts:['ので','から','ため','せいで'], a:3, d:'Hasil negatif + nada menyalahkan → 〜せいで.', tags:['p14','p13']},
+     {q:'先生の指導の____、合格できました。', opts:['せいで','おかげで','わけで','くせに'], a:1, d:'Hasil positif + rasa terima kasih → 〜おかげで.', tags:['p13','p14']},
+     {q:'（掲示）工事中の____、この道路は通行できません。', opts:['から','ので','ため','せいで'], a:2, d:'Pengumuman formal tertulis → 〜ため.', tags:['p14']},
+   ]},
+  {id:'g4', title:'Perbandingan & Sudut Pandang', desc:'に比べて / に対して / にとって / によって',
+   items:[
+     ['〜に比べて','Perbandingan objektif dua hal.','去年に比べて暑い。'],
+     ['〜に対して','Arah sikap/tindakan; juga "sedangkan".','質問に対して答える。'],
+     ['〜にとって','Sudut pandang si penilai: "bagi ~".','子供にとって良い環境だ。'],
+     ['〜によって','Pelaku pasif formal / cara / "tergantung".','人によって意見が違う。'],
+   ],
+   qs:[
+     {q:'去年____、今年は雨が多い。', opts:['に比べて','に対して','にとって','によって'], a:0, d:'Perbandingan dua tahun secara objektif → 〜に比べて.', tags:['p8','p9']},
+     {q:'この漢字は外国人____難しい。', opts:['に比べて','に対して','にとって','によって'], a:2, d:'Sudut pandang orang asing → 〜にとって.', tags:['p10','p9']},
+     {q:'先生____失礼なことを言ってはいけない。', opts:['に比べて','に対して','にとって','によって'], a:1, d:'Target/arah sikap (kepada guru) → 〜に対して.', tags:['p9','p10']},
+   ]},
+  {id:'g5', title:'Kecenderungan & Kemungkinan', desc:'がち / っぽい / 気味 / おそれがある / かねない',
+   items:[
+     ['〜がち','Sering terjadi (kecenderungan agak negatif).','最近忘れがちだ。'],
+     ['〜っぽい','Kesan sifat: "-nya / seperti"; kasual.','彼は怒りっぽい。'],
+     ['〜気味','"Agak / sedikit" (gejala, keadaan).','疲れ気味だ。'],
+     ['〜おそれがある','Kemungkinan buruk; formal, peringatan.','橋が壊れるおそれがある。'],
+     ['〜かねない','"Bisa saja (berakibat buruk)" — kekhawatiran.','<ruby>誤解<rt>ごかい</rt></ruby>を招きかねない。'],
+   ],
+   qs:[
+     {q:'最近、疲れ____だ。少し休んだ方がいい。', opts:['がち','っぽい','気味','すぎ'], a:2, d:'"Agak lelah" (gejala ringan) → 〜気味.', tags:['p19','p20']},
+     {q:'（警報）この橋は崩壊する____。', opts:['気味','っぽい','がち','おそれがある'], a:3, d:'Peringatan formal tentang kemungkinan buruk → 〜おそれがある.', tags:['p15','p16']},
+     {q:'彼は遅刻し____だから、気をつけた方がいい。', opts:['がち','気味','っぽい','かねない'], a:0, d:'Kecenderungan berulang yang negatif → 〜がち.', tags:['p19','p20']},
+   ]},
+  {id:'g6', title:'Penyangkalan', desc:'わけではない / わけがない / どころか',
+   items:[
+     ['〜わけではない','Sangkal SEBAGIAN: "bukan berarti ~".','嫌いなわけではない。'],
+     ['〜わけがない','Mustahil total.','終わるわけがない。'],
+     ['〜どころか','"Jangankan ~, justru ~" (yang dikatakan justru sebaliknya).','忙しくて旅行どころではない。'],
+   ],
+   qs:[
+     {q:'彼女は歌が下手な____。実はとても上手だ。', opts:['わけがない','わけではない','どころか','はずがない'], a:1, d:'Sangkal sebagian (kenyataannya justru bagus) → 〜わけではない.', tags:['p3','p6']},
+     {q:'忙しくて、旅行____。仕事が山積みだ。', opts:['わけだ','わけではない','どころか','ばかりか'], a:2, d:'"Jangankan traveling…" → 〜どころか.', tags:['p3','p4']},
+     {q:'一日でこの分厚い本を全部読める____。', opts:['わけがない','わけではない','どころか','ものか'], a:0, d:'Mustahil secara logika → 〜わけがない.', tags:['p6','p3']},
+   ]},
+];
+
+/* ===== READING: 3 tingkat kesulitan ===== */
+const READING = [
+  {id:'r1', lv:'Pendek', kind:'Pengumuman', title:'図書館からのお知らせ',
+   paras:['来月5日から10日まで、図書館は蔵書整理のため休館します。期間中は貸出・返却ができませんので、ご注意ください。返却期限が休館中に来る本は、11日以降にお持ちいただければ延滞料金はかかりません。なお、電子書籍サービスは通常どおりご利用いただけます。'],
+   qs:[
+     {q:'このお知らせの内容は何ですか。', opts:['図書館が一時的に休館すること','図書館が新しく建て替えられること','延滞料金が上がること','電子書籍サービスが始まること'], a:0, type:'mainidea', d:'Ide utama: pemberitahuan penutupan sementara perpustakaan untuk penataan koleksi.'},
+     {q:'休館中に返却期限が来る本はどうすればよいですか。', opts:['急いで休館前に返しに行く','11日以降に持って行けば延滞料金はかからない','<ruby>罰金<rt>ばっきん</rt></ruby>を電話で払う','返却はできない'], a:1, type:'detail', d:'Detail teks: buku yang jatuh tempo saat tutup bisa dikembalikan mulai tanggal 11 tanpa denda.'},
+     {q:'休館中でも使えるものはどれですか。', opts:['貸出カウンター','返却ボックス','電子書籍サービス','閲覧室'], a:2, type:'detail', d:'Teks menyebut layanan e-book tetap berjalan seperti biasa.'},
+   ]},
+  {id:'r2', lv:'Pendek', kind:'Email', title:'メール：会議時間の変更',
+   paras:['鈴木様 お疲れ様です。山田です。来週火曜日の定例会議ですが、クライアントとの打ち合わせが長引く見込みのため、開始時間を午後2時から3時に変更させていただけないでしょうか。場所は変わりません。資料は前日までにメールでお送りします。ご都合が悪ければご連絡ください。'],
+   qs:[
+     {q:'このメールの目的は何ですか。', opts:['会議をキャンセルすること','会議の開始時間を変更したいこと','資料を早くもらうこと','打ち合わせの場所を変えること'], a:1, type:'tujuan', d:'Tujuan penulis: meminta perubahan jam mulai rapat dari pukul 2 ke pukul 3 sore.'},
+     {q:'会議の開始が遅れる理由は何ですか。', opts:['山田が休むから','クライアントとの打ち合わせが長くなりそうだから','資料がまだできていないから','会議室が使えないから'], a:1, type:'alasan', d:'Alasannya: rapat dengan klien diperkirakan molor (長引く見込み).'},
+     {q:'鈴木さんが都合が悪い場合、どうすべきですか。', opts:['返事は不要','直接会社に行く','連絡する','資料を待つ'], a:2, type:'detail', d:'Kalimat terakhir: ご都合が悪ければご連絡ください — hubungi jika tidak berkenan.'},
+   ]},
+  {id:'r3', lv:'Sedang', kind:'Artikel pendek', title:'リモートワークの広がり',
+   paras:['ここ数年、リモートワークを導入する企業が増えている。通勤時間が不要になり、多くの人が時間を有効に使えるようになった。',
+          '一方で、同僚と直接顔を合わせる機会が減り、孤独感を<ruby>訴える<rt>うったえる</rt></ruby>人も少なくない。ある調査では、週に一度は出社したいと答えた人が全体の六割に上った。',
+          '企業は、完全なリモートか、週数日の出社を組み合わせるか、働き方の選択肢を増やすことが求められている。'],
+   qs:[
+     {q:'この文章のテーマは何ですか。', opts:['リモートワークの歴史','リモートワークの利点と<ruby>課題<rt>かだい</rt></ruby>','通勤時間の減らし方','調査のやり方'], a:1, type:'mainidea', d:'Ide utama: kelebihan (efisiensi waktu) dan tantangan (kesepian) kerja remote.'},
+     {q:'調査で六割の人が望んだことは何ですか。', opts:['完全なリモートワーク','週に一度は出社すること','給料アップ','転職'], a:1, type:'detail', d:'Detail: 週に一度は出社したい人が六割.'},
+     {q:'筆者が企業に望んでいることは何ですか。', opts:['リモートを完全にやめること','出社を<ruby>義務<rt>ぎむ</rt></ruby>化すること','働き方の選択肢を増やすこと','調査を続けること'], a:2, type:'infer', d:'Inferensi dari paragraf terakhir: perusahaan dituntut menambah pilihan cara kerja.'},
+     {q:'「少なくない」はどういう意味ですか。', opts:['ほとんどいない','かなり多い','全員','誰もいない'], a:1, type:'kata', d:'少なくない dalam konteks = tidak sedikit → cukup banyak.'},
+   ]},
+  {id:'r4', lv:'Sedang', kind:'Opini', title:'スマホ時代の読書',
+   paras:['スマートフォンの普及で、本を読む時間が減ったとよく言われる。確かに、電車の中で新聞や本を開く人は以前より少なくなった。',
+          'しかし、私は読書が消えたのではなく、形を変えただけだと考える。電子書籍やSNSの文章も、立派な読書体験である。問題は量ではなく、深く考えながら読むかどうかだ。',
+          '大切なのは、短い文を流し読みするだけでなく、時には長い文章にじっくり向き合う時間を持つことではないだろうか。'],
+   qs:[
+     {q:'筆者の主張はどれですか。', opts:['スマホは悪いので使うべきではない','読書は形を変えて続いており、深く読むことが大切','電車では本を読むべきだ','SNSは読書ではない'], a:1, type:'mainidea', d:'Main idea: membaca tidak hilang, hanya berubah bentuk; yang penting membaca dengan mendalam.'},
+     {q:'筆者が「形を変えただけ」と言う理由は何ですか。', opts:['紙の本がもうないから','電子書籍やSNSの文章も読書体験だから','読書量が増えたから','新聞が人気だから'], a:1, type:'alasan', d:'Alasan: e-book dan tulisan SNS juga merupakan pengalaman membaca yang layak.'},
+     {q:'「じっくり向き合う」に近い意味はどれですか。', opts:['速く読むこと','集中して読むこと','声に出して読むこと','飛ばして読むこと'], a:1, type:'kata', d:'じっくり向き合う = menghadapi dengan sungguh-sungguh → membaca dengan fokus.'},
+     {q:'最後の段落で筆者が勧めていることは何ですか。', opts:['短文だけを読むこと','長い文章にも時間をかけて向き合うこと','スマホを捨てること','毎日新聞を読むこと'], a:1, type:'tujuan', d:'Tujuan akhir: sesekali luangkan waktu untuk menghadapi teks panjang dengan serius.'},
+   ]},
+  {id:'r5', lv:'N2', kind:'Penjelasan abstrak', title:'日本語の「曖昧さ」',
+   paras:['日本語はよく「曖昧な言語だ」と言われる。<ruby>断定<rt>だんてい</rt></ruby>的な表現を避け、「〜と思う」「〜かもしれない」と柔らかく言い換える傾向が確かに存在する。',
+          'しかし、この<ruby>曖昧<rt>あいまい</rt></ruby>さは日本語の欠点ではない。相手の立場に配慮し、対立を<ruby>避ける<rt>さける</rt></ruby>ためのコミュニケーションの<ruby>工夫<rt>くふう</rt></ruby>だと考えるべきだろう。はっきり言うことが常に正しいとは限らないからだ。',
+          'もちろん、<ruby>曖昧<rt>あいまい</rt></ruby>さには弊害もある。<ruby>責任<rt>せきにん</rt></ruby>の所在が不明確になり、ビジネスや国際交流で<ruby>誤解<rt>ごかい</rt></ruby>を生むことがある。重要なのは、場面に応じて<ruby>曖昧<rt>あいまい</rt></ruby>さと明確さを使い分ける力である。'],
+   qs:[
+     {q:'この文章で筆者が最も伝えたいことは何ですか。', opts:['日本語は<ruby>曖昧<rt>あいまい</rt></ruby>すぎる','<ruby>曖昧<rt>あいまい</rt></ruby>さは欠点であり直すべきだ','<ruby>曖昧<rt>あいまい</rt></ruby>さの功罪を理解し使い分けることが重要だ','明確に話す練習をすべきだ'], a:2, type:'mainidea', d:'Main idea: penting memahami kelebihan-kekurangan kesamaran dan memakainya sesuai situasi.'},
+     {q:'筆者によると、<ruby>曖昧<rt>あいまい</rt></ruby>さの背景にあるものは何ですか。', opts:['文法の弱さ','相手への配慮と対立の<ruby>回避<rt>かいひ</rt></ruby>','漢字の多さ','教育の問題'], a:1, type:'alasan', d:'Alasan versi penulis: kesamaran lahir dari kepedulian pada posisi lawan bicara dan menghindari konflik.'},
+     {q:'<ruby>曖昧<rt>あいまい</rt></ruby>さの弊害として挙げられているものはどれですか。', opts:['会話が長くなる','<ruby>責任<rt>せきにん</rt></ruby>の所在が不明確になる','敬語が使えなくなる','文が書けなくなる'], a:1, type:'detail', d:'Detail paragraf 3: letak tanggung jawab jadi tidak jelas dan memicu salah paham.'},
+     {q:'「使い分ける力」とは何ですか。', opts:['状況に応じて表現の明確さを調整する力','二か国語を話す力','早口で話す力','<ruby>曖昧<rt>あいまい</rt></ruby>にだけ話す力'], a:0, type:'infer', d:'Inferensi: kemampuan mengatur tingkat kejelasan sesuai situasi.'},
+   ]},
+  {id:'r6', lv:'N2', kind:'Argumentasi', title:'AIと語学学習',
+   paras:['AI翻訳の精度が上がり、「もう外国語を学ぶ必要はない」という声を聞くことが増えた。確かに、旅行や簡単な連絡なら、翻訳アプリで十分かもしれない。',
+          'だが、言語を学ぶ意義は翻訳のためだけではない。外国語を学ぶ過程で、私たちは異なる文化や考え方に触れ、自国の言語をも客観的に見つめ直すことができる。',
+          'むしろAI時代だからこそ、機械に任せられる部分と、人間が自ら学ぶべき部分を見極める力が求められるのだ。'],
+   qs:[
+     {q:'筆者の考えに最も近いものはどれですか。', opts:['語学学習はもう不要だ','AIがあれば翻訳は完璧だ','AIの利点を認めつつも、語学学習の意義は残る','翻訳アプリは使うべきではない'], a:2, type:'mainidea', d:'Main idea: AI berguna, tapi makna belajar bahasa tetap ada.'},
+     {q:'語学学習の意義として筆者が挙げていないものはどれですか。', opts:['異文化に触れられる','自国の言語を見直せる','翻訳の仕事が増える','異なる考え方に触れられる'], a:2, type:'detail', d:'Yang TIDAK disebut: bertambahnya pekerjaan penerjemah.'},
+     {q:'「見極める」に近い意味はどれですか。', opts:['見逃す','見分けて判断する','見上げる','じっと見つめる'], a:1, type:'kata', d:'見極める = membedakan dan menilai → 見分けて判断する.'},
+     {q:'筆者が読者に求めている態度はどれですか。', opts:['AIを全面的に<ruby>拒否<rt>きょひ</rt></ruby>する','便利な部分はAIに任せ、学ぶべき部分は自分で学ぶ','すべて自分で翻訳する','外国語の勉強をやめる'], a:1, type:'tujuan', d:'Tujuan penulis: gunakan AI untuk bagian yang bisa diserahkan mesin, pelajari sendiri sisanya.'},
+   ]},
+];
+
+/* ===== LISTENING (TTS perangkat, transkrip tersembunyi) ===== */
+const LISTEN = [
+  {id:'l1', say:'明日の会議は三時からになりました。場所はいつもの会議室です。', sayFuri:'明日の会議は三時からになりました。場所はいつもの会議室です。', q:'会議は何時からですか。', opts:['二時','三時','四時','五時'], a:1, d:'Kalimat pertama: 三時からになりました — rapat mulai jam 3.'},
+  {id:'l2', say:'申し訳ありませんが、この資料をコピーして、会議の前に配っておいてもらえますか。', sayFuri:'申し訳ありませんが、この資料をコピーして、会議の前に配っておいてもらえますか。', q:'話し手は何を頼んでいますか。', opts:['資料を捨てること','資料をコピーして配ること','会議を延期すること','メールを送ること'], a:1, d:'Permintaan: fotokopi materi dan membagikannya sebelum rapat.'},
+  {id:'l3', say:'このラーメンは少し辛いですが、癖になる味ですよ。', sayFuri:'このラーメンは少し辛いですが、<ruby>癖<rt>くせ</rt></ruby>になる味ですよ。', q:'話し手はラーメンをどう思っていますか。', opts:['辛すぎて嫌い','辛いが、また食べたくなる','全く辛くない','もう食べたくない'], a:1, d:'癖になる味 = rasa yang bikin ketagihan.'},
+];
+
+/* ===== BANK SOAL: berkategori + bertag (untuk adaptive review) ===== */
+const QUIZ = [
+  /* --- N3 Review --- */
+  {q:'雨が降りそうだから、傘を持って行く____。', opts:['ことにした','ことになった','ものだ','はずだ'], a:0, cat:'n3', type:'Grammar selection', d:'Keputusan sendiri → 〜ことにした. 〜ことになった = keputusan dari luar/peraturan.', tags:[]},
+  {q:'さっきご飯を食べた____なのに、もうお腹が空いた。', opts:['ばかり','ところ','ほど','くらい'], a:0, cat:'n3', type:'Grammar selection', d:'〜たばかり = baru saja melakukan.', tags:[]},
+  {q:'「彼女は明るい性格だ」— 明るい artinya…', opts:['cerah','periang','gelap','pemalu'], a:1, cat:'n3', type:'Meaning', d:'明るい untuk sifat = ceria, periang.', tags:[]},
+  {q:'疲れた時は無理せず休む____。', opts:['ものだ','ことだ','わけだ','はずだ'], a:1, cat:'n3', type:'Grammar selection', d:'〜ことだ = nasihat lembut "sebaiknya ~".', tags:['p27']},
+  {q:'風邪をひいた____、学校を休んだ。', opts:['ので','のに','ても','なら'], a:0, cat:'n3', type:'Cloze', d:'〜ので = sebab yang netral dan sopan.', tags:[]},
+  {q:'実家に帰る____、故郷の味が懐かしくなる。', opts:['たびに','あいだ','ほど','まま'], a:0, cat:'n3', type:'Grammar selection', d:'〜たびに = setiap kali ~.', tags:['p42']},
+  {q:'「彼女は派手な服が好きだ」— <ruby>派手<rt>はで</rt></ruby> の読み方は…', opts:['はで','はて','ぱで','ばで'], a:0, cat:'n3', type:'Reading', d:'<ruby>派手<rt>はで</rt></ruby> = はで, mencolok.', tags:['w25']},
+  {q:'「彼は約束を守る人だ」— 守る の読み方は…', opts:['まもる','もる','まもえる','まもめる'], a:0, cat:'n3', type:'Reading', d:'守る = まもる, menepati/menjaga.', tags:[]},
+  {q:'この荷物は重____、一人では持てない。', opts:['すぎて','がちで','っぽくて','づらくて'], a:0, cat:'n3', type:'Cloze', d:'〜すぎる = kelewat ~.', tags:[]},
+  {q:'「慎重な人」とは、どんな人ですか。', opts:['すぐ決める人','よく考えてから行動する人','何でも話す人','すぐ怒る人'], a:1, cat:'n3', type:'Contextual vocabulary', d:'<ruby>慎重<rt>しんちょう</rt></ruby> = bertindak setelah berpikir matang.', tags:['w22']},
+  {q:'「職場」の読み方は…', opts:['しょくば','しょくばあ','しょっば','しょくばん'], a:0, cat:'n3', type:'Reading', d:'職場 = しょくば, tempat kerja.', tags:[]},
+  {q:'「思い出す」の意味は…', opts:['melupakan','teringat kembali','menyesal','berharap'], a:1, cat:'n3', type:'Meaning', d:'思い出す = teringat kembali, mengingat.', tags:[]},
+  {q:'Susunan yang benar: 「昨日・友達と・映画を・見に行った」', opts:['昨日、友達と映画を見に行った。','昨日、映画を友達と見に行った。','友達と昨日、見に行った映画を。','映画を昨日、友達と見に行った。'], a:0, cat:'n3', type:'Sentence ordering', words:['昨日、','友達と','映画を','見に行った。'], d:'Urutan natural: waktu → partner → objek → tujuan-gerakan.', tags:[]},
+  /* --- N3 → N2 Bridge --- */
+  {q:'10年も住んでいたんだから、京都に詳しい____。', opts:['わけだ','わけではない','わけがない','わけにはいかない'], a:0, cat:'bridge', type:'Grammar contrast', d:'Kesimpulan logis dari fakta → 〜わけだ.', tags:['p46','p3']},
+  {q:'彼の行動は理解し____。', opts:['にくい','づらい','がたい','かねない'], a:2, cat:'bridge', type:'Grammar contrast', d:'Sulit dipahami secara mental → 〜がたい (信じがたい, 理解しがたい).', tags:['p18','p49']},
+  {q:'彼は怒り____から、注意した方がいい。', opts:['がち','っぽい','気味','がたい'], a:1, cat:'bridge', type:'Grammar contrast', d:'Sifat "gampang marah" → 怒りっぽい. 〜がち = kecenderungan kejadian.', tags:['p20','p19']},
+  {q:'この店は値段の____、量が多い。', opts:['に比べて','わりに','に対して','にとって'], a:1, cat:'bridge', type:'Grammar contrast', d:'"Untuk harganya, porsinya banyak" → 〜わりに (tak sebanding ekspektasi).', tags:['p7','p8']},
+  {q:'この問題は私____とても重要だ。', opts:['に対して','にとって','によって','に比べて'], a:1, cat:'bridge', type:'Grammar contrast', d:'Sudut pandang "bagiku" → 〜にとって.', tags:['p10','p9']},
+  {q:'毎日練習した____、試合に勝てた。', opts:['せいで','おかげで','ため','せいか'], a:1, cat:'bridge', type:'Grammar contrast', d:'Hasil positif → 〜おかげで.', tags:['p13','p14']},
+  {q:'傘を買った____、一度も使っていない。', opts:['ものの','ものを','ことに','ことか'], a:0, cat:'bridge', type:'Grammar selection', d:'〜ものの = "sudah ~ tetapi (hasil tak sesuai)".', tags:['p25']},
+  {q:'彼の日本語は先生も驚く____上手だ。', opts:['ほど','ずつ','ばかり','だけ'], a:0, cat:'bridge', type:'Grammar contrast', d:'Tingkat ekstrem "sampai guru pun terkejut" → 〜ほど.', tags:['p23','p24']},
+  {q:'「する」を「〜ざるを得ない」に直すと…', opts:['しざるを得ない','せざるを得ない','するざるを得ない','すざるを得ない'], a:1, cat:'bridge', type:'Sentence transformation', d:'Pengecualian penting: する → せざるを得ない.', tags:['p1']},
+  {q:'会社の方針には従わ____。', opts:['ざるを得ない','しかない','わけではない','ことだ'], a:0, cat:'bridge', type:'Grammar contrast', d:'Formal, tak ada pilihan → 〜ざるを得ない.', tags:['p1']},
+  {q:'全部が悪い____。一部は良かった。', opts:['わけがない','わけではない','どころか','ものの'], a:1, cat:'bridge', type:'Grammar contrast', d:'Sangkal sebagian → 〜わけではない.', tags:['p3','p6']},
+  {q:'締め切りが明日なら、<ruby>徹夜<rt>てつや</rt></ruby>する____。', opts:['しかない','ものだ','はずだ','わけがない'], a:0, cat:'bridge', type:'Grammar contrast', d:'"Cuma bisa begadang" (kasual) → 〜しかない. Formal: せざるを得ない.', tags:['p1']},
+  {q:'Susunan yang benar: 「締め切り・があるので・終わらせ・ざるを得ない」', opts:['締め切りがあるので、終わらせざるを得ない。','終わらせざるを得ないので、締め切りがある。','締め切りが終わらせるので、あるざるを得ない。','ざるを得ない締め切りがあるので、終わらせる。'], a:0, cat:'bridge', type:'Sentence ordering', words:['締め切り','があるので、','終わらせ','ざるを得ない。'], d:'Sebab (締め切りがあるので) + kewajiban (終わらせざるを得ない).', tags:['p1']},
+  /* --- N2 Grammar --- */
+  {q:'この仕事は給料が安い____、やりがいがある。', opts:['だけに','わりに','ばかりに','くせに'], a:1, cat:'n2g', type:'Grammar selection', d:'〜わりに: kenyataan tak sebanding perkiraan umum.', tags:['p7']},
+  {q:'電車が遅れたので、約束の時間に遅れざるを____。', opts:['限らない','過ぎない','足りない','得ない'], a:3, cat:'n2g', type:'Grammar selection', d:'〜ざるを得ない = terpaksa harus ~.', tags:['p1']},
+  {q:'顔色が悪い。彼は疲れている____。', opts:['わけがない','どころか','に違いない','ばかりか'], a:2, cat:'n2g', type:'Grammar selection', d:'〜に違いない: kesimpulan yakin dari bukti.', tags:['p2']},
+  {q:'この調査は10年____行われた。', opts:['に対して','にわたって','にとって','に反して'], a:1, cat:'n2g', type:'Grammar selection', d:'〜にわたって = jangkauan waktu/wilayah yang luas.', tags:['p31']},
+  {q:'彼は頭がいい____、性格もいい。', opts:['どころか','ものの','ばかりか','あげく'], a:2, cat:'n2g', type:'Grammar selection', d:'〜ばかりか = bukan hanya ~ bahkan ~.', tags:['p4']},
+  {q:'一度引き受けた____、最後までやるべきだ。', opts:['ばかりか','からには','ことか','わけではない'], a:1, cat:'n2g', type:'Grammar selection', d:'〜からには = karena sudah ~ (konsekuensinya harus dijalani).', tags:['p40']},
+  {q:'この成功はチーム全員の努力____。', opts:['にすぎない','にほかならない','わけがない','どころか'], a:1, cat:'n2g', type:'Grammar selection', d:'〜にほかならない = tidak lain adalah ~ (penegasan).', tags:['p36']},
+  {q:'注意された____、彼は同じミスをした。', opts:['にもかかわらず','おかげで','ばかりか','ことに'], a:0, cat:'n2g', type:'Grammar selection', d:'〜にもかかわらず = padahal sudah ~ (kontras kuat).', tags:['p34']},
+  {q:'新しい法案____、議論が続いている。', opts:['について','をめぐって','に対して','にとって'], a:1, cat:'n2g', type:'Grammar selection', d:'〜をめぐって = perdebatan seputar isu.', tags:['p33']},
+  {q:'結果が分かり____、連絡します。', opts:['次第','最中','うちに','ことに'], a:0, cat:'n2g', type:'Grammar selection', d:'Vます + 次第 = segera setelah selesai (formal).', tags:['p39']},
+  {q:'会議の____に電話が鳴ってしまった。', opts:['次第','最中','以来','途中'], a:1, cat:'n2g', type:'Grammar selection', d:'〜最中に = di tengah-tengah sedang ~.', tags:['p38']},
+  {q:'この時期は体調を崩し____だ。', opts:['がち','っぽい','気味','がたい'], a:0, cat:'n2g', type:'Grammar contrast', d:'Kecenderungan berulang (negatif) → 〜がち.', tags:['p19','p20']},
+  {q:'初めて一人で海外に行った時、どれほど心細かった____。', opts:['ものか','ことか','わけだ','はずだ'], a:1, cat:'n2g', type:'Grammar selection', d:'〜ことか = seruan perasaan mendalam.', tags:['p5']},
+  {q:'学生のうちに勉強しておく____。', opts:['べきだ','はずだ','わけだ','ものか'], a:0, cat:'n2g', type:'Grammar selection', d:'〜べきだ = seharusnya (nasihat tegas).', tags:['p37']},
+  /* --- N2 Vocabulary --- */
+  {q:'「紛らわしい」artinya adalah…', opts:['menjengkelkan','membingungkan','memalukan','melelahkan'], a:1, cat:'n2v', type:'Meaning', d:'<ruby>紛らわしい<rt>まぎらわしい</rt></ruby> (まぎらわしい) = membingungkan, mudah tertukar.', tags:['w31']},
+  {q:'「諦める」artinya adalah…', opts:['berusaha','melanjutkan','mengulangi','menyerah'], a:3, cat:'n2v', type:'Meaning', d:'<ruby>諦める<rt>あきらめる</rt></ruby> (あきらめる) = menyerah.', tags:['w3']},
+  {q:'駅でうっかり財布を____しまった。', opts:['拾って','落として','隠して','捨てて'], a:1, cat:'n2v', type:'Contextual vocabulary', d:'落とす = menjatuhkan/kehilangan. うっかり = tanpa sengaja.', tags:['w59']},
+  {q:'「我慢する」artinya adalah…', opts:['berbicara kasar','menahan diri','melupakan','membuang waktu'], a:1, cat:'n2v', type:'Meaning', d:'<ruby>我慢する<rt>がまんする</rt></ruby> = menahan diri / bersabar.', tags:['w20']},
+  {q:'Kata untuk "mendesak / mempercepat balasan" adalah…', opts:['<ruby>促す<rt>うながす</rt></ruby>','<ruby>省く<rt>はぶく</rt></ruby>','<ruby>費やす<rt>ついやす</rt></ruby>','<ruby>臨む<rt>のぞむ</rt></ruby>'], a:0, cat:'n2v', type:'Recall', d:'<ruby>促す<rt>うながす</rt></ruby> (うながす) = mendesak, mendorong.', tags:['w65']},
+  {q:'<ruby>責任<rt>せきにん</rt></ruby>が____仕事だ。', opts:['<ruby>伴う<rt>ともなう</rt></ruby>','<ruby>基づく<rt>もとづく</rt></ruby>','<ruby>及ぶ<rt>およぶ</rt></ruby>','<ruby>応じる<rt>おうじる</rt></ruby>'], a:0, cat:'n2v', type:'Contextual vocabulary', d:'<ruby>責任<rt>せきにん</rt></ruby>が<ruby>伴う<rt>ともなう</rt></ruby> = disertai tanggung jawab (kolokasi umum).', tags:['w66']},
+  {q:'無駄な手順を____、効率が上がった。', opts:['省いたら','含んだら','遂げたら','果たしたら'], a:0, cat:'n2v', type:'Cloze', d:'<ruby>省く<rt>はぶく</rt></ruby> (はぶく) = menghilangkan/melewati bagian tak perlu.', tags:['w69']},
+  {q:'罠に____。', opts:['陥った','挑んだ','臨んだ','妨げた'], a:0, cat:'n2v', type:'Cloze', d:'<ruby>陥る<rt>おちいる</rt></ruby> (おちいる) = terjerumus.', tags:['w85']},
+  {q:'「勘違い」artinya adalah…', opts:['salah paham','kebetulan','keraguan','kesepakatan'], a:0, cat:'n2v', type:'Meaning', d:'<ruby>勘違い<rt>かんちがい</rt></ruby> = salah paham, keliru mengira.', tags:['w48']},
+  {q:'「素直な人」とは、どんな人ですか。', opts:['jujur apa adanya','keras kepala','pemalu','pendiam'], a:0, cat:'n2v', type:'Contextual vocabulary', d:'<ruby>素直<rt>すなお</rt></ruby> = jujur, tulus, apa adanya.', tags:['w23']},
+  {q:'Kata untuk "menahan diri (emosi/sakit)" adalah…', opts:['<ruby>我慢する<rt>がまんする</rt></ruby>','<ruby>反省<rt>はんせい</rt></ruby>する','<ruby>工夫<rt>くふう</rt></ruby>する','<ruby>遠慮<rt>えんりょ</rt></ruby>する'], a:0, cat:'n2v', type:'Recall', d:'<ruby>我慢する<rt>がまんする</rt></ruby> = menahan diri. <ruby>遠慮<rt>えんりょ</rt></ruby>する = sungkan/menahan diri secara sopan.', tags:['w20','w46']},
+  {q:'Kata untuk "mengkhianati" adalah…', opts:['<ruby>裏切る<rt>うらぎる</rt></ruby>','<ruby>断る<rt>ことわる</rt></ruby>','<ruby>疑う<rt>うたがう</rt></ruby>','<ruby>騙す<rt>だます</rt></ruby>'], a:0, cat:'n2v', type:'Recall', d:'<ruby>裏切る<rt>うらぎる</rt></ruby> (うらぎる) = mengkhianati.', tags:['w6']},
+  /* --- N2 Kanji --- */
+  {q:'彼の説明はいつも「曖昧」だ。Bacaan yang tepat adalah…', opts:['あいめい','ぞんまい','あいまい','げんまい'], a:2, cat:'n2k', type:'Reading', d:'<ruby>曖昧<rt>あいまい</rt></ruby> = あいまい, samar.', tags:['k1']},
+  {q:'「寛容」の読み方は…', opts:['かんじょう','がんよう','こうよう','かんよう'], a:3, cat:'n2k', type:'Reading', d:'<ruby>寛容<rt>かんよう</rt></ruby> = かんよう, toleran.', tags:['k21']},
+  {q:'「詐欺」の読み方は…', opts:['さき','ざぎ','さぎ','しぎ'], a:2, cat:'n2k', type:'Reading', d:'<ruby>詐欺<rt>さぎ</rt></ruby> = さぎ, penipuan.', tags:['k15']},
+  {q:'「柔軟」の読み方は…', opts:['じゅなん','にゅうなん','しゅうなん','じゅうなん'], a:3, cat:'n2k', type:'Reading', d:'<ruby>柔軟<rt>じゅうなん</rt></ruby> = じゅうなん, fleksibel.', tags:['k23']},
+  {q:'「迅速」の読み方は…', opts:['じんそく','しんそく','じんぞく','しんぞく'], a:0, cat:'n2k', type:'Reading', d:'<ruby>迅速<rt>じんそく</rt></ruby> = じんそく, cepat.', tags:['k17']},
+  {q:'「把握」の読み方は…', opts:['はあく','はくあく','はっあく','ばあく'], a:0, cat:'n2k', type:'Reading', d:'<ruby>把握<rt>はあく</rt></ruby> = はあく, pemahaman.', tags:['k7']},
+  {q:'「犠牲」の読み方は…', opts:['ぎせい','きせい','ぎしょう','きしょう'], a:0, cat:'n2k', type:'Reading', d:'<ruby>犠牲<rt>ぎせい</rt></ruby> = ぎせい, pengorbanan.', tags:['k8']},
+  {q:'「頻繁」の読み方は…', opts:['ひんぱん','ひんはん','びんぱん','ひんばつ'], a:0, cat:'n2k', type:'Reading', d:'<ruby>頻繁<rt>ひんぱん</rt></ruby> = ひんぱん, sering.', tags:['k13']},
+  {q:'「処方箋」の読み方は…', opts:['しょほうせん','しょぼうせん','しょほうぜん','しょぼうぜん'], a:0, cat:'n2k', type:'Reading', d:'<ruby>処方箋<rt>しょほうせん</rt></ruby> = しょほうせん, resep dokter.', tags:['k44']},
+  {q:'「緊張」の意味は…', opts:['santai','tegang, gugup','marah','sedih'], a:1, cat:'n2k', type:'Meaning', d:'<ruby>緊張<rt>きんちょう</rt></ruby> = tegang, gugup.', tags:['k12']},
+  {q:'会社の方針には従わ____。', answers:['ざるを得ない'], cat:'prod', type:'fill', d:'Formal, tak ada pilihan → 〜ざるを得ない.', tags:['p1']},
+  {q:'結果が分かり____、連絡します。', answers:['次第'], cat:'prod', type:'fill', d:'Vます + 次第 = segera setelah selesai (formal).', tags:['p39']},
+  {q:'会議の____に電話が鳴ってしまった。', answers:['最中'], cat:'prod', type:'fill', d:'〜最中に = di tengah-tengah sedang ~.', tags:['p38']},
+  {q:'「妥協」の読み方は…', answers:['だきょう'], cat:'prod', type:'fill', d:'<ruby>妥協<rt>だきょう</rt></ruby> = だきょう', tags:['k3']},
+  {q:'「貢献」の読み方は…', answers:['こうけん'], cat:'prod', type:'fill', d:'<ruby>貢献<rt>こうけん</rt></ruby> = こうけん', tags:['k4']},
+  {q:'「勧誘」の読み方は…', answers:['かんゆう'], cat:'prod', type:'fill', d:'<ruby>勧誘<rt>かんゆう</rt></ruby> = かんゆう', tags:['k40']},
+  {q:'「余裕」の読み方は…', answers:['よゆう'], cat:'prod', type:'fill', d:'<ruby>余裕<rt>よゆう</rt></ruby> = よゆう', tags:['k5']},
+];
+
+const PACKS = [
+  {id:'n3', name:'N3 Review', icon:'🌱', desc:'Pemanasan fondasi N3', cat:'n3'},
+  {id:'bridge', name:'N3 → N2 Bridge', icon:'🌉', desc:'Konsep penjembatan menuju N2', cat:'bridge'},
+  {id:'n2g', name:'N2 Grammar', icon:'📝', desc:'Pola tata bahasa N2', cat:'n2g'},
+  {id:'n2v', name:'N2 Vocabulary', icon:'🗣️', desc:'Kosakata N2 dalam konteks', cat:'n2v'},
+  {id:'n2k', name:'N2 Kanji', icon:'漢', desc:'Bacaan & arti kanji N2', cat:'n2k'},
+  {id:'contrast', name:'Grammar Kontras', icon:'⚖️', desc:'Pola mirip — uji nuansa & konteks', special:'contrast'},
+  {id:'mixed', name:'Latihan Campuran', icon:'🔀', desc:'Campuran acak semua materi', special:'mixed'},
+  {id:'prod', name:'Produksi: ketik jawaban', icon:'あ', desc:'Recall aktif - tanpa pilihan ganda', cat:'prod'},
+];
+
 const BADGES = [
   {id:'b1', emo:'🔥', name:'Rantai 7 Hari', desc:'Belajar 7 hari beruntun', test:s=>s.streak>=7},
   {id:'b2', emo:'🎌', name:'Hafal 25 Kanji', desc:'Kuasai 25 kartu kanji', test:s=>s.mastered.length>=25},
-  {id:'b3', emo:'💯', name:'Skor Sempurna', desc:'Jawab semua soal benar', test:s=>s.quizBest>=QUIZ.length},
+  {id:'b3', emo:'💯', name:'Skor Sempurna', desc:'100% di satu paket latihan', test:s=>Object.values(s.packBest).some(v=>v>=100)},
   {id:'b4', emo:'👑', name:'Penakluk Tantangan', desc:'Selesaikan tantangan harian', test:s=>!!s.challengeDone},
   {id:'b5', emo:'📖', name:'Ahli Bunpou', desc:'Tandai 10 pola sudah hafal', test:s=>s.polaHafal.length>=10},
   {id:'b6', emo:'📚', name:'Kolektor Kata', desc:'Lihat 20 detail kata', test:s=>s.kataDilihat.length>=20},
@@ -993,7 +1553,8 @@ const RIVALS = [
   {name:'Sari', xp:2100},
 ];
 
-/* ================= STATE (localStorage) ================= */
+/* ================= STATE (localStorage, dengan migrasi) ================= */
+const $ = id=>document.getElementById(id);
 const LS_KEY = 'n2jago.v1';
 const dayStr = (d=new Date()) =>
   `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -1005,11 +1566,23 @@ const defaults = () => ({
   quizBest:0, challengeDone:null,
   today:{date:dayStr(), count:0},
   week:{key:mondayStr(), cards:0, soal:0, xp:0},
-});
+  /* --- baru: program N3→N2 --- */
+  diag:null,            /* hasil diagnostic: {n3k,n3v,n3g,n2k,n2v,n2g} */
+  errors:{},            /* riwayat kesalahan: key -> {label, cat, count} */
+  packBest:{},          /* skor terbaik per paket (persen) */
+  readBest:{},          /* skor terbaik per bacaan (persen) */
+  mockBest:null,        /* practice score terbaik (persen) */
+  contrastDone:[],      /* kelompok kontras yang sudah dilatih */
+  furigana:{kanji:true,kotoba:true,bunpou:true,contrast:true,reading:true,listening:true,quiz:true,diagnostic:true,mock:false},
+})
 let state;
 try{ state = Object.assign(defaults(), JSON.parse(localStorage.getItem(LS_KEY)||'{}')); }
 catch(e){ state = defaults(); }
-if(!Array.isArray(state.polaHafal)) state.polaHafal = [];
+/* migrasi aman: field baru diisi default, data lama tidak disentuh */
+['mastered','hard','kataDilihat','polaDibaca','polaHafal','contrastDone'].forEach(k=>{ if(!Array.isArray(state[k])) state[k]=[]; });
+['errors','packBest','readBest'].forEach(k=>{ if(typeof state[k]!=='object'||!state[k]) state[k]={}; });
+state.furigana = Object.assign(defaults().furigana, (typeof state.furigana==='object'&&state.furigana)||{});
+Object.values(state.errors).forEach(e=>{ e.okCount=e.okCount||0; e.interval=e.interval||1; e.lastWrong=e.lastWrong||0; e.nextReview=e.nextReview||0; });
 function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
 
 function rolloverWindows(){
@@ -1026,6 +1599,54 @@ function initStreak(){
 function addXp(n){ state.xp += n; state.week.xp += n; }
 function bumpToday(){ state.today.count++; state.week.cards++; }
 
+/* --- error history & adaptive --- */
+function labelFor(tag){
+  const p=POLA.find(x=>x.id===tag); if(p) return p.p;
+  const k=KANJI.find(x=>x.id===tag); if(k) return k.k;
+  const w=KATA.find(x=>x.id===tag); if(w) return w.w;
+  if(tag.startsWith('rdg:')) return 'Reading · ' + tag.slice(4);
+  if(tag.startsWith('diag:')) return 'Diagnostik · ' + (DIAG_CATS[tag.slice(5)]||tag);
+  return tag;
+}
+function catFor(tag){
+  if(tag.startsWith('rdg:')) return 'Reading';
+  if(tag.startsWith('diag:')) return 'Diagnostik';
+  const c = tag[0];
+  return c==='p' ? 'Grammar' : c==='k' ? 'Kanji' : c==='w' ? 'Kotoba' : 'Lainnya';
+}
+const DAY_MS = 86400000;
+const REVIEW_INTERVALS = [1,3,7,14,30]; /* hari, makin panjang tiap jawaban benar */
+function recordError(tag){
+  const e = state.errors[tag] || {label:labelFor(tag), cat:catFor(tag), count:0, okCount:0, interval:1, lastWrong:0, nextReview:0};
+  e.count++; e.okCount=0; e.interval=REVIEW_INTERVALS[0];
+  e.lastWrong=Date.now(); e.nextReview=Date.now()+e.interval*DAY_MS;
+  state.errors[tag] = e;
+}
+function recordOk(tag){
+  const e = state.errors[tag];
+  if(!e) return;
+  e.okCount=(e.okCount||0)+1;
+  e.interval = REVIEW_INTERVALS[Math.min(e.okCount, REVIEW_INTERVALS.length-1)];
+  e.nextReview = Date.now() + e.interval*DAY_MS;
+}
+function weakTags(){ return Object.keys(state.errors).filter(t=>state.errors[t].count>=2); }
+function dueWeakTags(){
+  const now = Date.now();
+  return Object.keys(state.errors).filter(t=>{
+    const e=state.errors[t];
+    return e.count>=1 && (!e.nextReview || e.nextReview<=now);
+  }).sort((a,b)=>{
+    const ea=state.errors[a], eb=state.errors[b];
+    return (eb.count-ea.count) || ((ea.nextReview||0)-(eb.nextReview||0)) || ((ea.lastWrong||0)-(eb.lastWrong||0));
+  });
+}
+function polaStatus(id){
+  if(state.polaHafal.includes(id)) return ['mastered','Hafal'];
+  if(state.errors[id] && state.errors[id].count>=2) return ['weak','Lemah'];
+  if(state.polaDibaca.includes(id)) return ['learning','Belajar'];
+  return ['new','Baru'];
+}
+
 /* ================= NAV ================= */
 const screens = document.querySelectorAll('[data-screen]');
 const navBtns = document.querySelectorAll('[data-nav]');
@@ -1034,11 +1655,14 @@ function go(name, seg){
   navBtns.forEach(b=>b.classList.toggle('active', b.dataset.nav===name));
   if(name==='belajar') setBSeg(seg||'kanji');
   if(name==='progres') setPSeg(seg||'statistik');
+  if(name==='soal') showPackMenu();
   document.getElementById('main').scrollTop = 0;
 }
 navBtns.forEach(b=>b.addEventListener('click', ()=>go(b.dataset.nav)));
 document.querySelectorAll('[data-go]').forEach(el=>
   el.addEventListener('click', ()=>go(el.dataset.go, el.dataset.seg)));
+document.querySelectorAll('[data-goscreen]').forEach(el=>
+  el.addEventListener('click', ()=>go(el.dataset.goscreen)));
 
 function setBSeg(seg){
   document.querySelectorAll('[data-bseg]').forEach(b=>b.classList.toggle('active', b.dataset.bseg===seg));
@@ -1051,16 +1675,139 @@ function setPSeg(seg){
 document.querySelectorAll('[data-bseg]').forEach(b=>b.addEventListener('click', ()=>setBSeg(b.dataset.bseg)));
 document.querySelectorAll('[data-pseg]').forEach(b=>b.addEventListener('click', ()=>setPSeg(b.dataset.pseg)));
 
-/* tampilan kanji: kartu vs list */
 function setKView(v){
   document.querySelectorAll('[data-kview]').forEach(b=>b.classList.toggle('active', b.dataset.kview===v));
   document.querySelectorAll('[data-kpanel]').forEach(p=>p.hidden = p.dataset.kpanel!==v);
   if(v==='list') renderKanjiList();
 }
 document.querySelectorAll('[data-kview]').forEach(b=>b.addEventListener('click', ()=>setKView(b.dataset.kview)));
+
+/* ================= BERANDA: diag card + learning path ================= */
+const pct = (a,b)=>Math.round(a/b*100);
+const avg = arr => Math.round(arr.reduce((x,y)=>x+y,0)/arr.length);
+
+function renderDiagHome(){
+  const el = $('diagHomeBody');
+  if(!state.diag){
+    el.innerHTML = `
+      <div class="label">🧭 Tes diagnostik</div>
+      <div class="mt8" style="font-weight:700; font-size:17px">Belum ada profil kemampuanmu</div>
+      <p class="small muted mt8">Ikuti tes 24 soal (±7 menit) untuk memetakan kemampuan N3 &amp; N2-mu, lalu dapatkan rekomendasi belajar yang tepat.</p>
+      <button class="btn btn-primary btn-block mt12" id="diagCta">Mulai Tes Diagnostik</button>`;
+    $('diagCta').addEventListener('click', ()=>go('diag'));
+  } else {
+    const d = state.diag;
+    const rows = [['n3k','N3 Kanji'],['n3v','N3 Kosakata'],['n3g','N3 Grammar'],['n2k','N2 Kanji'],['n2v','N2 Kosakata'],['n2g','N2 Grammar']];
+    el.innerHTML = `
+      <div class="row between">
+        <div class="label">🧭 Profil diagnostik</div>
+        <button class="toggle-btn" id="diagRetake" style="min-height:36px">Ulangi tes</button>
+      </div>
+      <div class="mt8">${rows.map(([k,nm])=>`
+        <div class="row between small"><span class="muted">${nm}</span><b>${d[k]}%</b></div>
+        <div class="bar" style="margin:4px 0 8px"><i style="width:${d[k]}%"></i></div>`).join('')}</div>`;
+    $('diagRetake').addEventListener('click', ()=>go('diag'));
+  }
+}
+
+function pathStages(){
+  const d = state.diag;
+  const s1 = d ? avg([d.n3k,d.n3v,d.n3g]) : (state.packBest.n3||0);
+  const s2 = Math.round(((state.packBest.bridge||0) + pct(state.contrastDone.length, CONTRAST.length))/2);
+  const n2pola = POLA.filter(p=>p.lv==='N2');
+  const n2polaHafal = n2pola.filter(p=>state.polaHafal.includes(p.id)).length;
+  const s3 = Math.round(((state.packBest.n2g||0) + pct(n2polaHafal, n2pola.length))/2);
+  const s4 = avg([pct(state.mastered.length,KANJI.length), state.packBest.n2v||0, state.packBest.n2k||0]);
+  const s5 = pct(Object.keys(state.readBest).length, READING.length);
+  const s6 = state.packBest.mixed||0;
+  const s7 = state.mockBest||0;
+  const stages = [
+    ['N3 Foundation', s1, 'Perkuat fondasi: paket N3 Review'],
+    ['N3 → N2 Bridge', s2, 'Jembatan: paket Bridge + tab Kontras'],
+    ['N2 Grammar Core', s3, 'Pola N2: paket Grammar + tandai hafal'],
+    ['N2 Vocabulary & Kanji', s4, 'Flashcard + paket Kosakata/Kanji'],
+    ['N2 Reading', s5, 'Bacaan bertingkat di tab Bacaan'],
+    ['Mixed Practice', s6, 'Latihan campuran semua materi'],
+    ['N2 Mock Test', s7, 'Simulasi 模擬試験 dengan timer'],
+  ];
+  let cur = stages.findIndex(s=>s[1]<60);
+  if(cur<0) cur = stages.length-1;
+  return {stages, cur};
+}
+function renderPath(){
+  const {stages, cur} = pathStages();
+  $('pathList').innerHTML = stages.map(([name,val,hint],i)=>{
+    const cls = val>=60 ? 'done' : (i===cur ? 'now' : '');
+    return `<div class="path-step ${cls}">
+      <div class="path-rail">
+        <div class="path-dot">${val>=60?'✓':i+1}</div>
+        ${i<stages.length-1?'<div class="path-line"></div>':''}
+      </div>
+      <div class="path-body">
+        <div class="row between"><b>${name}</b><b class="small">${val}%</b></div>
+        <div class="bar mt8"><i style="width:${val}%"></i></div>
+        ${i===cur?`<div class="mini-note mt8">▶ Tahap kamu sekarang — ${hint}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ================= DIAGNOSTIC TEST ================= */
+let di=0, dScore=null, dAnswered=false;
+function startDiag(){
+  di=0;
+  dScore={n3k:[0,0],n3v:[0,0],n3g:[0,0],n2k:[0,0],n2v:[0,0],n2g:[0,0]};
+  $('diagIntro').hidden=true; $('diagResult').hidden=true; $('diagRun').hidden=false;
+  renderD();
+}
+function renderD(){
+  dAnswered=false;
+  const q = DIAG[di];
+  $('dCat').textContent = DIAG_CATS[q.c];
+  $('dCounter').textContent = `Soal ${di+1}/${DIAG.length}`;
+  $('dBar').style.width = (di/DIAG.length*100)+'%';
+  $('dText').innerHTML = q.q.replace('____','<span class="blank">＿＿＿</span>');
+  $('dOpts').innerHTML = q.opts.map((o,i)=>`
+    <button class="opt" data-dopt="${i}"><span class="key">${'ABCD'[i]}</span>${o}</button>`).join('');
+  document.querySelectorAll('[data-dopt]').forEach(el=>el.addEventListener('click', ()=>pickD(+el.dataset.dopt)));
+}
+function pickD(i){
+  if(dAnswered) return; dAnswered=true;
+  const q = DIAG[di];
+  dScore[q.c][1]++;
+  if(i===q.a){ dScore[q.c][0]++; addXp(5); }
+  else recordError('diag:'+q.c);
+  di++;
+  if(di>=DIAG.length) finishDiag(); else renderD();
+}
+function finishDiag(){
+  const d = {};
+  Object.keys(dScore).forEach(k=>{ d[k] = pct(dScore[k][0], dScore[k][1]); });
+  state.diag = d; save();
+  $('diagRun').hidden=true; $('diagResult').hidden=false;
+  const rows = [['n3k','N3 Kanji'],['n3v','N3 Kosakata'],['n3g','N3 Grammar'],['n2k','N2 Kanji'],['n2v','N2 Kosakata'],['n2g','N2 Grammar']];
+  $('diagBars').innerHTML = rows.map(([k,nm])=>`
+    <div class="diag-row">
+      <div class="top"><span>${nm}</span><b>${d[k]}%</b></div>
+      <div class="bar"><i style="width:${d[k]}%"></i></div>
+    </div>`).join('');
+  const n3weak = [['n3k','Kanji'],['n3v','Kosakata'],['n3g','Grammar']].filter(([k])=>d[k]<70).map(x=>x[1]);
+  let reco;
+  if(n3weak.length){
+    reco = `Fondasi N3 ${n3weak.join(' dan ')} masih perlu diperkuat sebelum masuk ke materi N2 terkait. Mulai dari paket 🌱 N3 Review, lalu lanjut ke 🌉 Bridge. Pola N3 di tab Bunpou (lencana hijau) adalah prerequisite-nya.`;
+  } else {
+    reco = 'Fondasi N3 sudah cukup kuat. Kamu bisa fokus ke N2 Core: paket N2 Grammar, Kosakata & Kanji, lalu naik ke Reading dan Mixed Practice.';
+  }
+  if(d.n2g<50) reco += ' Grammar N2-mu masih rendah — prioritaskan tab Kontras untuk pola yang mudah tertukar.';
+  $('diagReco').textContent = reco;
+  refreshStats();
+}
+$('btnDiagStart').addEventListener('click', startDiag);
+$('btnDiagRetake').addEventListener('click', startDiag);
+$('btnDiagDone').addEventListener('click', ()=>go('home'));
+
 /* ================= FLASHCARD KANJI ================= */
 let deck=[], ci=0, flipped=false, sessionXp=0, shuffleOn=false;
-const $ = id=>document.getElementById(id);
 
 function shuffleArr(arr){
   const a=[...arr];
@@ -1109,6 +1856,7 @@ function mark(hafal){
     state.hard = state.hard.filter(id=>id!==k.id);
   } else {
     if(!state.hard.includes(k.id)) state.hard.push(k.id);
+    recordError(k.id);   /* masuk riwayat kesalahan → review adaptif */
   }
   if(state.today.count>=20 && !state.challengeDone){
     state.challengeDone = dayStr(); addXp(50); sessionXp+=50;
@@ -1133,23 +1881,62 @@ $('btnUlangi').addEventListener('click', ()=>mark(false));
 $('btnRestart').addEventListener('click', ()=>startDeck(false));
 $('btnHardOnly').addEventListener('click', ()=>startDeck(true));
 
+/* ================= SHEET UMUM (detail kanji & kata) ================= */
+function openSheetHTML(html, furiKey){
+  $('sheetContent').innerHTML = html;
+  const on = furiKey ? state.furigana[furiKey]!==false : true;
+  $('sheet').classList.toggle('nf', !on);
+  $('sheet').classList.toggle('fo', !!on);
+  $('scrim').classList.add('show');
+  $('sheet').classList.add('show');
+}
+function closeSheet(){ $('scrim').classList.remove('show'); $('sheet').classList.remove('show'); }
+$('scrim').addEventListener('click', closeSheet);
+$('sheetClose').addEventListener('click', closeSheet);
+
+function openKanjiSheet(id){
+  const k = KANJI.find(x=>x.id===id); if(!k) return;
+  const det = KDETAIL[id];
+  const mastered = state.mastered.includes(id);
+  const hard = !mastered && state.hard.includes(id);
+  openSheetHTML(`
+    <span class="tag">JLPT N2</span>
+    ${mastered?'<span class="tag green" style="margin-left:6px">✓ hafal</span>':''}
+    ${hard?'<span class="tag orange" style="margin-left:6px">↺ sulit</span>':''}
+    <div class="mt12" style="font-size:40px; font-weight:700; line-height:1.2"><ruby>${k.k}<rt>${k.r}</rt></ruby></div>
+    <div style="font-size:20px; color:var(--accent); font-weight:600" class="mt8">${k.r}</div>
+    <div style="font-size:18px" class="mt8">${k.m}</div>
+    ${det ? `
+    <div class="label mt16">Onyomi / pecahan kanji</div>
+    <div class="ex-box mt8"><div>${det.c}</div></div>
+    <div class="label mt16">Kata turunan & pasangan</div>
+    <div class="list mt8">${det.w.map(w=>`
+      <div class="ex-box"><div>${w[0]} <span class="example-id">${w[1]}</span></div><div class="example-id">${w[2]}</div></div>`).join('')}
+    </div>` : ''}
+    <div class="label mt16">Contoh kalimat</div>
+    <div class="ex-box mt8"><div>${k.ex}</div><div class="example-id">${k.exi}</div></div>
+  `, 'kanji');
+}
+
 /* ================= DAFTAR KANJI ================= */
 function renderKanjiList(){
   $('kanjiList').innerHTML = KANJI.map(k=>{
     const mastered = state.mastered.includes(k.id);
     const hard = !mastered && state.hard.includes(k.id);
     return `
-    <div class="item">
+    <button class="item" data-kj="${k.id}">
       <div>
-        <div class="jp">${k.k} <span class="sub">${k.r}</span></div>
+        <div class="jp"><ruby>${k.k}<rt>${k.r}</rt></ruby> <span class="sub furi-alt">${k.r}</span></div>
         <div class="sub">${k.m}</div>
       </div>
       <span class="marks">
         ${mastered ? '<span class="tag green">✓ hafal</span>' : ''}
         ${hard ? '<span class="tag orange">↺ sulit</span>' : ''}
       </span>
-    </div>`;
+      <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+    </button>`;
   }).join('');
+  document.querySelectorAll('[data-kj]').forEach(el=>el.addEventListener('click', ()=>openKanjiSheet(el.dataset.kj)));
 }
 
 /* ================= KOTOBA ================= */
@@ -1159,41 +1946,46 @@ function renderKata(filter=''){
   $('kataList').innerHTML = items.map(k=>`
     <button class="item" data-kata="${k.id}">
       <div>
-        <div class="jp">${k.w} <span class="sub">${k.r}</span></div>
+        <div class="jp"><ruby>${k.w}<rt>${k.r}</rt></ruby> <span class="sub furi-alt">${k.r}</span></div>
         <div class="sub">${k.m}</div>
       </div>
       <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
     </button>`).join('') || '<p class="muted small">Tidak ada kosakata yang cocok.</p>';
-  document.querySelectorAll('[data-kata]').forEach(el=>el.addEventListener('click', ()=>openSheet(el.dataset.kata)));
+  document.querySelectorAll('[data-kata]').forEach(el=>el.addEventListener('click', ()=>openKataSheet(el.dataset.kata)));
 }
 $('kataSearch').addEventListener('input', e=>renderKata(e.target.value));
 
-function openSheet(id){
+function openKataSheet(id){
   const k = KATA.find(x=>x.id===id); if(!k) return;
-  $('sheetWord').textContent = k.w;
-  $('sheetReading').textContent = k.r;
-  $('sheetMeaning').textContent = k.m;
-  $('sheetEx').textContent = k.ex;
-  $('sheetExId').textContent = k.exi;
-  if(k.ex2){
-    $('sheetExBox2').style.display = '';
-    $('sheetEx2').textContent = k.ex2;
-    $('sheetExId2').textContent = k.exi2;
-  } else {
-    $('sheetExBox2').style.display = 'none';
-  }
-  $('scrim').classList.add('show');
-  $('sheet').classList.add('show');
+  const col = KCOL[id];
+  openSheetHTML(`
+    <span class="tag">JLPT N2</span>
+    ${col && col.reg ? `<span class="tag orange" style="margin-left:6px">${col.reg}</span>` : ''}
+    <div class="mt12" style="font-size:40px; font-weight:700; line-height:1.2"><ruby>${k.w}<rt>${k.r}</rt></ruby></div>
+    <div style="font-size:20px; color:var(--accent); font-weight:600" class="mt8">${k.r}</div>
+    <div style="font-size:18px" class="mt8">${k.m}</div>
+    ${col ? `
+    <div class="label mt16">Kolokasi & pasangan umum</div>
+    <div class="list mt8">${col.col.map(c=>`
+      <div class="ex-box"><div>${c[0]}</div><div class="example-id">${c[1]}</div></div>`).join('')}
+    </div>
+    ${col.syn ? `<div class="small mt12">🔗 Sinonim: ${col.syn}</div>` : ''}
+    ${col.ant ? `<div class="small mt8">↔️ Antonim: ${col.ant}</div>` : ''}
+    ${col.mix ? `<div class="small mt8">⚖️ Mudah tertukar: ${col.mix}</div>` : ''}`
+    : '<p class="small muted mt16">Belajar lewat contoh kalimat di bawah ini.</p>'}
+    <div class="label mt16">Contoh kalimat</div>
+    <div class="ex-box mt8"><div>${k.ex}</div><div class="example-id">${k.exi}</div></div>
+    <div class="ex-box mt8"><div>${k.ex2}</div><div class="example-id">${k.exi2}</div></div>
+  `, 'kotoba');
   if(!state.kataDilihat.includes(id)){ state.kataDilihat.push(id); save(); refreshStats(); }
 }
-function closeSheet(){ $('scrim').classList.remove('show'); $('sheet').classList.remove('show'); }
-$('scrim').addEventListener('click', closeSheet);
-$('sheetClose').addEventListener('click', closeSheet);
 
-/* ================= BUNPOU ================= */
+/* ================= BUNPOU (diperkaya) ================= */
 function renderPola(){
   $('polaList').innerHTML = POLA.map(p=>{
     const hafal = state.polaHafal.includes(p.id);
+    const [st, stLabel] = polaStatus(p.id);
+    const x = POLA_EXTRA[p.id] || {};
     return `
     <div class="card pola" data-pola="${p.id}">
       <button aria-expanded="false">
@@ -1202,17 +1994,19 @@ function renderPola(){
           <div class="jp">${p.p}</div>
           <div class="sub">${p.m}</div>
         </div>
-        ${hafal ? '<span class="tag green" style="flex:none">✓ hafal</span>' : ''}
+        ${hafal ? '<span class="status-tag st-mastered">✓ Hafal</span>'
+          : st==='weak' ? '<span class="status-tag st-weak">⚠ Lemah</span>'
+          : st==='learning' ? '<span class="status-tag st-learning">Belajar</span>' : ''}
         <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
       </button>
       <div class="body"><div class="inner">
         <p class="small">${p.d}</p>
-        <div class="ex-box">
-          <div>${p.ex}</div><div class="example-id">${p.exi}</div>
-        </div>
-        <div class="ex-box">
-          <div>${p.ex2}</div><div class="example-id">${p.exi2}</div>
-        </div>
+        ${x.setsu ? `<div class="ex-box"><div class="label" style="font-size:12px">接続 · cara menyambung</div><div class="small mt8">${x.setsu}</div></div>` : ''}
+        ${x.nua ? `<div class="ex-box"><div class="label" style="font-size:12px">Nuansa</div><div class="small mt8">${x.nua}</div></div>` : ''}
+        ${x.miss ? `<div class="ex-box"><div class="label" style="font-size:12px">Kesalahan umum</div><div class="small mt8">${x.miss}</div></div>` : ''}
+        ${x.simi ? `<div class="ex-box"><div class="label" style="font-size:12px">Bandingkan dengan pola mirip</div><div class="small mt8">${x.simi}</div></div>` : ''}
+        <div class="ex-box"><div>${p.ex}</div><div class="example-id">${p.exi}</div></div>
+        <div class="ex-box"><div>${p.ex2}</div><div class="example-id">${p.exi2}</div></div>
         <button class="btn ${hafal?'hafal-btn on':'btn-outline'} btn-block" data-hafal="${p.id}">
           ${hafal ? '✓ Sudah hafal (ketuk untuk batal)' : 'Tandai sudah hafal'}
         </button>
@@ -1235,6 +2029,7 @@ function renderPola(){
       state.polaHafal = state.polaHafal.filter(x=>x!==id);
     } else {
       state.polaHafal.push(id);
+      if(state.errors[id]) delete state.errors[id];  /* sudah dikuasai → keluar dari daftar lemah */
       addXp(5);
     }
     save(); refreshStats(); renderPolaKeepOpen(id);
@@ -1245,67 +2040,444 @@ function renderPolaKeepOpen(openId){
   const box = document.querySelector(`[data-pola="${openId}"]`);
   if(box){ box.classList.add('open'); box.querySelector('button').setAttribute('aria-expanded','true'); }
 }
-/* ================= QUIZ ================= */
-let qi=0, score=0, answered=false;
+
+/* ================= KONTRAS ================= */
+function renderKontras(){
+  $('kontrasList').innerHTML = CONTRAST.map(g=>{
+    const done = state.contrastDone.includes(g.id);
+    return `
+    <div class="card pola" data-kontra="${g.id}">
+      <button aria-expanded="false">
+        <span style="font-size:20px">⚖️</span>
+        <div>
+          <div class="jp" style="font-size:17px">${g.title}</div>
+          <div class="sub">${g.desc}</div>
+        </div>
+        ${done ? '<span class="status-tag st-mastered">✓ dilatih</span>' : ''}
+        <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+      <div class="body"><div class="inner">
+        ${g.items.map(it=>`
+          <div class="kontra-line">
+            <b>${it[0]}</b>
+            <span class="small">${it[1]}<br><span class="muted">${it[2]}</span></span>
+          </div>`).join('')}
+        <button class="btn btn-primary btn-block" data-kontra-go="${g.id}">Latihan: ${g.title} (${g.qs.length} soal)</button>
+      </div></div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('[data-kontra] > button').forEach(btn=>btn.addEventListener('click', ()=>{
+    const box = btn.closest('.pola');
+    const opening = !box.classList.contains('open');
+    box.classList.toggle('open');
+    btn.setAttribute('aria-expanded', opening);
+  }));
+  document.querySelectorAll('[data-kontra-go]').forEach(btn=>btn.addEventListener('click', e=>{
+    e.stopPropagation();
+    startContrast(btn.dataset.kontraGo);
+  }));
+}
+function startContrast(gid){
+  const g = CONTRAST.find(x=>x.id===gid); if(!g) return;
+  go('soal');
+  startSession(g.qs.map(q=>({...q})), `Kontras · ${g.title}`, 'contrast:'+gid);
+}
+
+/* ================= QUIZ ENGINE (per paket) ================= */
+let session=null;
+function showPackMenu(){
+  $('packMenu').hidden=false; $('quizRun').hidden=true;
+  renderPackList();
+}
+function renderPackList(){
+  $('packList').innerHTML = PACKS.map(p=>{
+    const best = state.packBest[p.id];
+    return `<button class="item" data-pack="${p.id}">
+      <span style="font-size:22px">${p.icon}</span>
+      <div class="grow">
+        <div class="jp" style="font-size:16px">${p.name}</div>
+        <div class="sub">${p.desc}</div>
+      </div>
+      ${best!=null?`<span class="pack-best">${best}%</span>`:''}
+      <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+    </button>`;
+  }).join('');
+  document.querySelectorAll('[data-pack]').forEach(el=>el.addEventListener('click', ()=>startPack(el.dataset.pack)));
+  $('mockBestLine').textContent = state.mockBest!=null ? `Practice Score terbaik: ${state.mockBest}%` : 'Belum pernah simulasi';
+}
+function poolForPack(p){
+  if(p.cat) return QUIZ.filter(q=>q.cat===p.cat);
+  if(p.special==='mixed') return shuffleArr(QUIZ).slice(0,12);
+  if(p.special==='contrast') return CONTRAST.flatMap(g=>g.qs);
+  return QUIZ;
+}
+function startPack(id){
+  const p = PACKS.find(x=>x.id===id); if(!p) return;
+  startSession(poolForPack(p), p.icon+' '+p.name, p.id);
+}
+function startSession(pool, title, packId){
+  session = {pool: shuffleArr(pool), idx:0, score:0, packId, title, xp:0, answered:false};
+  $('packMenu').hidden=true; $('quizRun').hidden=false;
+  $('quizDone').hidden=true; $('quizBody').style.display='';
+  $('qPackName').textContent = title;
+  renderQ();
+  document.getElementById('main').scrollTop = 0;
+}
+function gradeSessionAnswer(ok, q, extraD){
+  session.answered=true;
+  if(ok){ session.score++; session.xp+=15; addXp(15); (q.tags||[]).forEach(t=>recordOk(t)); }
+  else (q.tags||[]).forEach(t=>recordError(t));
+  state.week.soal++;
+  save(); refreshStats();
+  $('qExplainText').textContent = (extraD?extraD+' - ':'') + q.d;
+  $('qExplain').hidden = false;
+  $('qNext').textContent = session.idx===session.pool.length-1 ? 'Lihat hasil' : 'Soal berikutnya';
+}
 function renderQ(){
-  answered=false;
-  const q = QUIZ[qi];
-  $('qCounter').textContent = `Soal ${qi+1}/${QUIZ.length}`;
-  $('qBar').style.width = (qi/QUIZ.length*100)+'%';
-  $('qText').innerHTML = q.q.replace('____','<span class="blank">＿＿＿</span>');
-  $('qOpts').innerHTML = q.opts.map((o,i)=>`
-    <button class="opt" data-opt="${i}"><span class="key">${'ABCD'[i]}</span>${o}</button>`).join('');
+  session.answered=false;
+  const q = session.pool[session.idx];
+  $('qCounter').textContent = `Soal ${session.idx+1}/${session.pool.length}`;
+  $('qBar').style.width = (session.idx/session.pool.length*100)+'%';
+  $('qType').textContent = q.type || '';
+  $('qText').innerHTML = q.q.replace('____','<span class="blank">___</span>');
   $('qExplain').hidden = true;
-  document.querySelectorAll('[data-opt]').forEach(el=>el.addEventListener('click', ()=>pick(+el.dataset.opt)));
+  if(q.type==='fill'){
+    $('qOpts').innerHTML = `
+      <input class="fill-input" id="fillInput" placeholder="Ketik jawabanmu..." autocomplete="off" autocapitalize="none" spellcheck="false">
+      <button class="btn btn-primary btn-block mt12" id="fillCheck">Periksa</button>`;
+    const doCheck = ()=>{
+      if(session.answered) return;
+      const v = $('fillInput').value.trim();
+      if(!v) return;
+      const norm = x=>x.toLowerCase().replace(/\s+/g,'');
+      const ok = (q.answers||[]).some(a=>norm(a)===norm(v));
+      $('fillInput').classList.add(ok?'ok':'ng');
+      $('fillInput').disabled = true; $('fillCheck').disabled = true;
+      gradeSessionAnswer(ok, q, ok?null:`Jawaban benar: ${q.answers[0]}`);
+    };
+    $('fillCheck').addEventListener('click', doCheck);
+    $('fillInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doCheck(); });
+  } else if(q.words){
+    const shuffledChips = shuffleArr(q.words.map((w,i)=>({w,i})));
+    let seq=[];
+    $('qOpts').innerHTML = `
+      <div class="order-line" id="orderLine"><span class="muted small">Ketuk potongan di bawah untuk menyusun.</span></div>
+      <div class="chips">${shuffledChips.map((c,ci)=>`<button class="chip" data-chip="${ci}">${c.w}</button>`).join('')}</div>
+      <div class="fc-actions" style="grid-template-columns:1fr 1fr">
+        <button class="btn btn-outline" id="orderReset">Ulangi susun</button>
+        <button class="btn btn-primary" id="orderCheck">Periksa</button>
+      </div>`;
+    document.querySelectorAll('[data-chip]').forEach(el=>el.addEventListener('click', ()=>{
+      if(session.answered||el.classList.contains('used')) return;
+      el.classList.add('used');
+      seq.push(shuffledChips[+el.dataset.chip].w);
+      $('orderLine').innerHTML = seq.map(w=>`<b>${w}</b>`).join(' ');
+    }));
+    $('orderReset').addEventListener('click', ()=>{
+      if(session.answered) return;
+      seq=[]; $('orderLine').innerHTML='<span class="muted small">Ketuk potongan di bawah untuk menyusun.</span>';
+      document.querySelectorAll('[data-chip]').forEach(x=>x.classList.remove('used'));
+    });
+    $('orderCheck').addEventListener('click', ()=>{
+      if(session.answered||seq.length<q.words.length) return;
+      const ok = seq.join('')===q.words.join('');
+      $('orderLine').style.borderColor = ok?'var(--green)':'var(--red)';
+      if(!ok) $('orderLine').innerHTML += `<div class="small" style="color:var(--red); width:100%">Urutan benar: ${q.words.join(' ')}</div>`;
+      gradeSessionAnswer(ok, q);
+    });
+  } else {
+    $('qOpts').innerHTML = q.opts.map((o,i)=>`
+      <button class="opt" data-opt="${i}"><span class="key">${'ABCD'[i]}</span>${o}</button>`).join('');
+    document.querySelectorAll('[data-opt]').forEach(el=>el.addEventListener('click', ()=>pick(+el.dataset.opt)));
+  }
 }
 function pick(i){
-  if(answered) return; answered=true;
-  const q = QUIZ[qi];
+  if(session.answered) return;
+  const q = session.pool[session.idx];
   document.querySelectorAll('[data-opt]').forEach(el=>{
     const n=+el.dataset.opt;
     if(n===q.a) el.classList.add('correct');
     else if(n===i) el.classList.add('wrong');
     el.disabled = true;
   });
-  if(i===q.a){ score++; addXp(15); }
-  state.week.soal++;
-  save(); refreshStats();
-  $('qExplainText').textContent = q.d;
-  $('qExplain').hidden = false;
-  $('qNext').textContent = qi===QUIZ.length-1 ? 'Lihat hasil' : 'Soal berikutnya';
+  gradeSessionAnswer(i===q.a, q);
 }
 $('qNext').addEventListener('click', ()=>{
-  qi++;
-  if(qi>=QUIZ.length){
-    state.quizBest = Math.max(state.quizBest, score);
+  session.idx++;
+  if(session.idx>=session.pool.length){
+    const total = session.pool.length, sc = session.score;
+    const pc = pct(sc,total);
+    if(session.packId){
+      state.packBest[session.packId] = Math.max(state.packBest[session.packId]||0, pc);
+      if(session.packId.startsWith('contrast:')){
+        const gid = session.packId.split(':')[1];
+        if(!state.contrastDone.includes(gid)) state.contrastDone.push(gid);
+      }
+    }
+    state.quizBest = Math.max(state.quizBest, pc);
     save(); refreshStats();
     $('quizBody').style.display='none';
     $('quizDone').hidden=false;
-    $('quizScoreTitle').textContent = `Skor kamu ${score}/${QUIZ.length}`;
-    $('quizScoreSub').textContent = score===QUIZ.length
+    $('quizScoreTitle').textContent = `Skor kamu ${sc}/${total} (${pc}%)`;
+    $('quizScoreSub').textContent = pc===100
       ? 'Sempurna! Lencana "Skor Sempurna" terbuka. 🎉'
-      : `Kamu dapat +${score*15} XP. Coba lagi untuk skor sempurna!`;
+      : `Kamu dapat +${session.xp} XP. Kesalahan tercatat otomatis untuk review adaptif.`;
     $('qBar').style.width='100%';
   } else renderQ();
 });
-$('quizRetry').addEventListener('click', ()=>{
-  qi=0; score=0;
-  $('quizDone').hidden=true;
-  $('quizBody').style.display='';
-  renderQ();
-});
+$('quizRetry').addEventListener('click', ()=>startSession(session.pool, session.title, session.packId));
+$('quizBack').addEventListener('click', ()=>showPackMenu());
 
-/* ================= STATS / TANTANGAN ================= */
-const pct = (a,b)=>Math.round(a/b*100);
+/* ================= READING ================= */
+let readSess=null;
+function readLvTag(lv){
+  if(lv==='N2') return '<span class="lvl n2">N2</span>';
+  if(lv==='Sedang') return '<span class="lvl" style="background:var(--orange-soft); color:var(--orange)">Sedang</span>';
+  return '<span class="lvl n3">Pendek</span>';
+}
+function renderReadList(){
+  $('readList').innerHTML = READING.map(r=>{
+    const best = state.readBest[r.id];
+    return `<button class="item" data-read="${r.id}">
+      ${readLvTag(r.lv)}
+      <div class="grow">
+        <div class="jp" style="font-size:16px">${r.title}</div>
+        <div class="sub">${r.kind} · ${r.qs.length} soal pemahaman</div>
+      </div>
+      ${best!=null?`<span class="pack-best">${best}%</span>`:''}
+      <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+    </button>`;
+  }).join('');
+  document.querySelectorAll('[data-read]').forEach(el=>el.addEventListener('click', ()=>openRead(el.dataset.read)));
+}
+function openRead(id){
+  const r = READING.find(x=>x.id===id); if(!r) return;
+  readSess = {r, qi:0, score:0, answered:false};
+  $('readMenu').hidden=true; $('readView').hidden=false;
+  $('readTitle').textContent = r.title;
+  $('readMeta').innerHTML = readLvTag(r.lv) + ` <span class="tag" style="margin-left:6px">${r.kind}</span>`;
+  $('readBody').innerHTML = r.paras.map(p=>`<p style="margin-bottom:12px">${p}</p>`).join('');
+  renderRQ();
+  document.getElementById('main').scrollTop = 0;
+}
+function renderRQ(){
+  const r = readSess.r, q = r.qs[readSess.qi];
+  readSess.answered=false;
+  $('readQuiz').innerHTML = `
+    <div class="row between"><span class="label">Soal ${readSess.qi+1}/${r.qs.length}</span><span class="qtype">${q.type}</span></div>
+    <div class="card mt12">
+      <p class="q-sentence" style="font-size:17px">${q.q}</p>
+      <div class="opts">${q.opts.map((o,i)=>`<button class="opt" data-ropt="${i}"><span class="key">${'ABCD'[i]}</span>${o}</button>`).join('')}</div>
+    </div>
+    <div class="explain" id="rExplain" hidden>
+      <b>Pembahasan</b>
+      <p class="mt8">${q.d}</p>
+      <button class="btn btn-primary btn-block mt12" id="rNext">${readSess.qi===r.qs.length-1?'Lihat hasil':'Soal berikutnya'}</button>
+    </div>`;
+  document.querySelectorAll('[data-ropt]').forEach(el=>el.addEventListener('click', ()=>pickR(+el.dataset.ropt)));
+  $('rNext').addEventListener('click', ()=>{
+    readSess.qi++;
+    if(readSess.qi>=r.qs.length) finishRead(); else renderRQ();
+  });
+}
+function pickR(i){
+  if(readSess.answered) return; readSess.answered=true;
+  const q = readSess.r.qs[readSess.qi];
+  document.querySelectorAll('[data-ropt]').forEach(el=>{
+    const n=+el.dataset.ropt;
+    if(n===q.a) el.classList.add('correct');
+    else if(n===i) el.classList.add('wrong');
+    el.disabled = true;
+  });
+  if(i===q.a){ readSess.score++; addXp(15); }
+  else recordError('rdg:'+q.type);
+  state.week.soal++;
+  save(); refreshStats();
+  $('rExplain').hidden=false;
+}
+function finishRead(){
+  const r = readSess.r;
+  const pc = pct(readSess.score, r.qs.length);
+  state.readBest[r.id] = Math.max(state.readBest[r.id]||0, pc);
+  save(); refreshStats();
+  $('readQuiz').innerHTML = `
+    <div class="card done">
+      <div class="big">📖</div>
+      <h2 class="section mt8">${readSess.score}/${r.qs.length} benar (${pc}%)</h2>
+      <p class="muted small mt8">Baca ulang teksnya, perhatikan bagian yang salah.</p>
+      <button class="btn btn-primary btn-block mt16" id="readRetry">Ulangi bacaan ini</button>
+      <button class="btn btn-outline btn-block mt12" id="readDoneBack">Kembali ke daftar bacaan</button>
+    </div>`;
+  $('readDoneBack').addEventListener('click', closeRead);
+  $('readRetry').addEventListener('click', ()=>openRead(readSess.r.id));
+}
+function closeRead(){
+  $('readView').hidden=true; $('readMenu').hidden=false;
+  renderReadList();
+}
+$('readBack').addEventListener('click', closeRead);
+
+/* ================= LISTENING (TTS perangkat) ================= */
+let listenIdx=0, listenScore=0;
+function renderListen(){
+  const box = $('listenBox');
+  const supported = 'speechSynthesis' in window;
+  if(listenIdx>=LISTEN.length){
+    box.innerHTML = `<div class="done" style="padding:16px">
+      <div class="big">🎧</div>
+      <p class="small muted mt8">Sesi listening selesai · ${listenScore}/${LISTEN.length} benar</p>
+      <button class="btn btn-outline btn-block mt12" id="listenRestart">Ulangi sesi</button>
+    </div>`;
+    $('listenRestart').addEventListener('click', ()=>{ listenIdx=0; listenScore=0; renderListen(); });
+    return;
+  }
+  const it = LISTEN[listenIdx];
+  box.innerHTML = `
+    <div class="row between"><span class="small muted">Soal ${listenIdx+1}/${LISTEN.length}</span></div>
+    <button class="btn btn-primary btn-block mt12" id="listenPlay">▶ Putar audio</button>
+    ${!supported ? '<p class="listen-note">⚠️ Perangkat ini tidak mendukung text-to-speech — transkrip bisa dibuka setelah menjawab.</p>' : '<p class="listen-note">Dengarkan dulu, baru jawab. Transkrip tersembunyi sampai kamu menjawab.</p>'}
+    <div class="card mt12">
+      <p class="q-sentence" style="font-size:17px">${it.q}</p>
+      <div class="opts">${it.opts.map((o,i)=>`<button class="opt" data-lopt="${i}"><span class="key">${'ABCD'[i]}</span>${o}</button>`).join('')}</div>
+    </div>
+    <div class="explain" id="lExplain" hidden>
+      <b>Pembahasan</b>
+      <p class="mt8">${it.d}</p>
+      <div class="ex-box mt12"><div class="label" style="font-size:12px">Transkrip</div><div class="small mt8">${it.sayFuri||it.say}</div></div>
+      <button class="btn btn-primary btn-block mt12" id="lNext">${listenIdx===LISTEN.length-1?'Selesai':'Soal berikutnya'}</button>
+    </div>`;
+  $('listenPlay').addEventListener('click', ()=>{
+    if(!supported) return;
+    const u = new SpeechSynthesisUtterance(it.say);
+    u.lang='ja-JP'; u.rate=0.9;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  });
+  document.querySelectorAll('[data-lopt]').forEach(el=>el.addEventListener('click', ()=>{
+    const i = +el.dataset.lopt;
+    document.querySelectorAll('[data-lopt]').forEach(x=>{
+      const n=+x.dataset.lopt;
+      if(n===it.a) x.classList.add('correct');
+      else if(n===i) x.classList.add('wrong');
+      x.disabled = true;
+    });
+    if(i===it.a){ listenScore++; addXp(10); }
+    else {
+      state.errors['listen:'+it.id] = {label:'Listening · pemahaman audio', cat:'Listening', count:(state.errors['listen:'+it.id]?.count||0)+1};
+    }
+    save(); refreshStats();
+    $('lExplain').hidden=false;
+    $('lNext').addEventListener('click', ()=>{ listenIdx++; renderListen(); });
+  }));
+}
+
+/* ================= MOCK TEST N2 ================= */
+let mock=null, mockTimer=null;
+$('btnMock').addEventListener('click', ()=>go('mock'));
+$('btnMockStart').addEventListener('click', startMock);
+function startMock(){
+  const moji = shuffleArr(QUIZ.filter(q=>q.cat==='n2k').concat(QUIZ.filter(q=>q.cat==='n2v'))).slice(0,8);
+  const bun = shuffleArr(QUIZ.filter(q=>q.cat==='n2g').concat(QUIZ.filter(q=>q.cat==='bridge'))).slice(0,10);
+  const rshort = READING.filter(r=>r.lv!=='N2');
+  const rn2 = READING.filter(r=>r.lv==='N2');
+  const rpicks = [rshort[Math.floor(Math.random()*rshort.length)], rn2[Math.floor(Math.random()*rn2.length)]];
+  const dokkai = shuffleArr(rpicks.flatMap(r=>r.qs.map(q=>({...q, pas:r.paras.join(' '), ptitle:r.title, cat:'dokkai'})))).slice(0,6);
+  const secs = [{name:'文字・語彙',qs:moji},{name:'文法',qs:bun},{name:'読解',qs:dokkai}];
+  mock = {secs, flat:secs.flatMap((s,si)=>s.qs.map(q=>({q,si}))), idx:0, ans:{}, time:25*60};
+  $('mockIntro').hidden=true; $('mockResult').hidden=true; $('mockRun').hidden=false;
+  clearInterval(mockTimer);
+  mockTimer = setInterval(()=>{
+    mock.time--;
+    $('mTimer').textContent = fmtTime(mock.time);
+    if(mock.time<=0) finishMock();
+  },1000);
+  renderM();
+  document.getElementById('main').scrollTop = 0;
+}
+const fmtTime = s => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+function renderM(){
+  const item = mock.flat[mock.idx], q = item.q;
+  $('mSec').textContent = mock.secs[item.si].name;
+  $('mTimer').textContent = fmtTime(mock.time);
+  $('mCounter').textContent = `Soal ${mock.idx+1}/${mock.flat.length} · terjawab ${Object.keys(mock.ans).length}`;
+  $('mBar').style.width = (Object.keys(mock.ans).length/mock.flat.length*100)+'%';
+  $('mText').innerHTML = (q.pas ? `<span class="small muted">〔${q.ptitle}〕</span><div class="read-body mt8" style="max-height:150px; font-size:14px">${q.pas}</div><span class="mt8" style="display:block">${q.q}</span>` : q.q.replace('____','<span class="blank">＿＿＿</span>'));
+  $('mOpts').innerHTML = q.opts.map((o,i)=>{
+    const sel = mock.ans[mock.idx]===i;
+    return `<button class="opt" data-mopt="${i}" style="${sel?'border-color:var(--accent); background:var(--accent-soft)':''}"><span class="key">${'ABCD'[i]}</span>${o}</button>`;
+  }).join('');
+  document.querySelectorAll('[data-mopt]').forEach(el=>el.addEventListener('click', ()=>{
+    mock.ans[mock.idx] = +el.dataset.mopt;
+    renderM();
+  }));
+  renderMGrid();
+}
+function renderMGrid(){
+  $('mGrid').innerHTML = mock.flat.map((_,i)=>{
+    const cls = [i===mock.idx?'cur':'', mock.ans[i]!=null?'ans':''].join(' ');
+    return `<button class="${cls}" data-mjump="${i}">${i+1}</button>`;
+  }).join('');
+  document.querySelectorAll('[data-mjump]').forEach(el=>el.addEventListener('click', ()=>{ mock.idx=+el.dataset.mjump; renderM(); }));
+}
+$('mPrev').addEventListener('click', ()=>{ if(mock.idx>0){ mock.idx--; renderM(); } });
+$('mNext').addEventListener('click', ()=>{ if(mock.idx<mock.flat.length-1){ mock.idx++; renderM(); } });
+$('mSkip').addEventListener('click', ()=>{ if(mock.idx<mock.flat.length-1){ mock.idx++; renderM(); } });
+$('mReview').addEventListener('click', ()=>{ $('mGridCard').hidden = !$('mGridCard').hidden; });
+$('mSubmit').addEventListener('click', ()=>{
+  const un = mock.flat.length - Object.keys(mock.ans).length;
+  if(un>0 && !confirm(`Masih ada ${un} soal belum terjawab. Kumpulkan sekarang?`)) return;
+  finishMock();
+});
+function finishMock(){
+  if(!mock||mock.finished) return;
+  mock.finished=true;
+  clearInterval(mockTimer);
+  let total=0, correct=0;
+  const secStat = mock.secs.map(()=>[0,0]);
+  const wrongTags = {};
+  mock.flat.forEach((it,i)=>{
+    secStat[it.si][1]++; total++;
+    if(mock.ans[i]===it.q.a){ secStat[it.si][0]++; correct++; }
+    else (it.q.tags||[]).forEach(t=>{ wrongTags[t]=(wrongTags[t]||0)+1; recordError(t); });
+  });
+  const pc = pct(correct,total);
+  state.mockBest = Math.max(state.mockBest||0, pc);
+  save(); refreshStats();
+  $('mockRun').hidden=true; $('mockResult').hidden=false;
+  $('mScore').textContent = pc+'%';
+  $('mBreak').innerHTML = mock.secs.map((s,i)=>`
+    <div class="diag-row">
+      <div class="top"><span>${s.name}</span><b>${secStat[i][0]}/${secStat[i][1]}</b></div>
+      <div class="bar"><i style="width:${pct(secStat[i][0],secStat[i][1])}%"></i></div>
+    </div>`).join('');
+  const wk = Object.entries(wrongTags).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  $('mWeak').innerHTML = wk.length
+    ? wk.map(([t,c])=>`<div class="row between small" style="padding:6px 0"><span>${labelFor(t)}</span><b style="color:var(--red)">×${c}</b></div>`).join('')
+    : '<p class="small muted">Tidak ada kelemahan — sempurna! 🎉</p>';
+  mock.lastWrongTags = wk.map(x=>x[0]);
+  document.getElementById('main').scrollTop = 0;
+}
+$('mWeakBtn').addEventListener('click', ()=>{
+  const tags = mock.lastWrongTags||[];
+  let pool = QUIZ.filter(q=>(q.tags||[]).some(t=>tags.includes(t)));
+  pool = pool.concat(CONTRAST.flatMap(g=>g.qs).filter(q=>(q.tags||[]).some(t=>tags.includes(t))));
+  if(pool.length===0) pool = shuffleArr(QUIZ).slice(0,10);
+  go('soal');
+  startSession(pool, '🎯 Latihan Kelemahan', null);
+});
+$('mHome').addEventListener('click', ()=>go('soal'));
+
+/* ================= STATS / PROGRES / ERROR HISTORY ================= */
+const ERR_TAG_CLASS = {Grammar:'', Kanji:'orange', Kotoba:'green', Reading:'', Listening:'', Diagnostik:'orange', Lainnya:''};
 function refreshStats(){
   rolloverWindows();
   $('streakNum').textContent = state.streak;
   $('streakBig').textContent = state.streak;
-  const overall = Math.round((pct(state.mastered.length,KANJI.length)+pct(state.kataDilihat.length,KATA.length)+pct(state.polaHafal.length,POLA.length)+pct(state.quizBest,QUIZ.length))/4);
+  const soalBest = Math.max(0, ...Object.values(state.packBest));
+  const overall = Math.round((pct(state.mastered.length,KANJI.length)+pct(state.kataDilihat.length,KATA.length)+pct(state.polaHafal.length,POLA.length)+soalBest)/4);
   $('ringPct').textContent = overall+'%';
   $('ringFg').style.strokeDashoffset = 226.2*(1-overall/100);
   $('homeKanjiStat').textContent = `${state.mastered.length} dari ${KANJI.length} kanji hafal`;
-  $('homeQuizStat').textContent = state.quizBest>0 ? `Skor latihan terbaik: ${state.quizBest}/${QUIZ.length}` : 'Skor latihan terbaik: –';
+  $('homeQuizStat').textContent = soalBest>0 ? `Skor paket terbaik: ${soalBest}%` : 'Belum ada skor latihan';
   const next = KANJI.find(k=>!state.mastered.includes(k.id));
   $('resumeTitle').textContent = next ? 'Flashcard Kanji' : 'Semua kanji terkuasai 🎉';
   $('resumeSub').textContent = next ? `Berikutnya: ${next.k} (${next.r})` : 'Ulas lagi biar makin mantap';
@@ -1323,11 +2495,22 @@ function refreshStats(){
   $('barKotoba').style.width = pct(state.kataDilihat.length,KATA.length)+'%';
   $('pctBunpou').textContent = pct(state.polaHafal.length,POLA.length)+'%';
   $('barBunpou').style.width = pct(state.polaHafal.length,POLA.length)+'%';
-  $('pctSoal').textContent = pct(state.quizBest,QUIZ.length)+'%';
-  $('barSoal').style.width = pct(state.quizBest,QUIZ.length)+'%';
+  $('pctSoal').textContent = soalBest+'%';
+  $('barSoal').style.width = soalBest+'%';
   $('weekCards').textContent = state.week.cards;
   $('weekSoal').textContent = state.week.soal;
   $('weekXp').textContent = state.week.xp;
+  /* progres akademik */
+  const {stages, cur} = pathStages();
+  $('acadBars').innerHTML = stages.slice(0,5).map(([name,val])=>`
+    <div class="diag-row">
+      <div class="top"><span>${name}</span><b>${val}%</b></div>
+      <div class="bar"><i style="width:${val}%"></i></div>
+    </div>`).join('');
+  $('greetSub').textContent = state.diag
+    ? `Tahap kamu sekarang: ${stages[cur][0]}`
+    : 'Ikuti tes diagnostik dulu untuk membuka peta jalur belajarmu.';
+  /* rantai harian */
   const days=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
   let html='';
   for(let i=6;i>=0;i--){
@@ -1336,12 +2519,14 @@ function refreshStats(){
     html+=`<div class="day"><span class="dot ${on?'on':''}">${on?'🔥':''}</span>${days[d.getDay()]}</div>`;
   }
   $('dayDots').innerHTML = html;
+  /* lencana */
   $('badgeGrid').innerHTML = BADGES.map(b=>{
     const earned = b.test(state);
     return `<div class="badge ${earned?'':'locked'}">
       <span class="emo">${b.emo}</span><b>${b.name}</b>
       <span>${earned?'Terbuka!':b.desc}</span></div>`;
   }).join('');
+  /* papan peringkat */
   const me = {name:'Kamu', xp:2280+state.xp, me:true};
   const rows = [...RIVALS, me].sort((a,b)=>b.xp-a.xp);
   $('leaderboard').innerHTML = rows.map((r,i)=>`
@@ -1349,17 +2534,55 @@ function refreshStats(){
       <span class="rank">${i+1}</span><b>${r.name}</b>
       <span class="xp">${r.xp.toLocaleString('id-ID')} XP</span>
     </div>`).join('');
-  /* segarkan tanda di daftar kanji bila sedang terlihat */
+  /* riwayat kesalahan */
+  const errs = Object.entries(state.errors).sort((a,b)=>b[1].count-a[1].count).slice(0,8);
+  const nowMs = Date.now();
+  $('errList').innerHTML = errs.length
+    ? errs.map(([t,e])=>{
+      const due = !e.nextReview || e.nextReview<=nowMs;
+      const rv = due ? 'siap di-review' : 'review: '+new Date(e.nextReview).toLocaleDateString('id-ID',{day:'numeric',month:'short'});
+      return `
+      <div class="row between" style="padding:8px 0; border-top:1px dashed var(--border)">
+        <span class="small"><span class="tag ${ERR_TAG_CLASS[e.cat]||''}" style="font-size:12px; padding:2px 8px">${e.cat}</span> ${e.label}<br><span class="mini-note" ${due?'style="color:var(--orange); font-weight:600"':''}>${rv} - interval ${e.interval||1} hari</span></span>
+        <b style="color:var(--red)">x${e.count}</b>
+      </div>`;
+    }).join('')
+    : '<p class="small muted" style="padding:8px 0">Belum ada kesalahan tercatat. Bagus!</p>';
+  /* segarkan tampilan terkait */
+  renderPath();
+  renderDiagHome();
+  renderPackList();
   if(!document.querySelector('[data-kpanel="list"]').hidden) renderKanjiList();
 }
 
+/* ================= LATIHAN KELEMAHAN (adaptif) ================= */
+$('btnWeak').addEventListener('click', ()=>{
+  const weak = dueWeakTags();
+  let pool = QUIZ.filter(q=>(q.tags||[]).some(t=>weak.includes(t)));
+  pool = pool.concat(CONTRAST.flatMap(g=>g.qs).filter(q=>(q.tags||[]).some(t=>weak.includes(t))));
+  let title = '🎯 Latihan Kelemahan';
+  if(pool.length===0){
+    pool = shuffleArr(QUIZ).slice(0,10);
+    title = '🎯 Review Campuran (belum ada kelemahan tercatat)';
+  }
+  go('soal');
+  startSession(pool, title, null);
+});
+
 /* ================= RESET & INIT ================= */
 $('btnReset').addEventListener('click', ()=>{
-  if(!confirm('Hapus semua progres lokal? Tindakan ini tidak bisa dibatalkan.')) return;
-  state = defaults(); initStreak(); save();
-  startDeck(false); qi=0; score=0;
-  $('quizDone').hidden=true; $('quizBody').style.display='';
-  renderQ(); renderPola(); refreshStats();
+  if(!confirm('Hapus semua progres lokal (termasuk hasil diagnostik & riwayat kesalahan)? Tindakan ini tidak bisa dibatalkan.')) return;
+  const furiKeep = state.furigana;
+  state = defaults(); state.furigana = furiKeep; initStreak(); save();
+  clearInterval(mockTimer); mock=null;
+  applyFuri();
+  startDeck(false);
+  renderKata(); renderPola(); renderKontras(); renderReadList();
+  listenIdx=0; listenScore=0; renderListen();
+  $('diagIntro').hidden=false; $('diagRun').hidden=true; $('diagResult').hidden=true;
+  $('mockIntro').hidden=false; $('mockRun').hidden=true; $('mockResult').hidden=true;
+  showPackMenu();
+  refreshStats();
 });
 
 $('resumeBtn').addEventListener('click', ()=>{ go('belajar','kanji'); });
@@ -1377,21 +2600,60 @@ function applyHash(){
   const h = location.hash.replace('#','');
   if(!h){ go('home'); return; }
   const [scr,seg] = h.split('-');
-  if(['home','belajar','soal','progres'].includes(scr)) go(scr,seg);
+  if(['home','belajar','soal','progres','diag','mock'].includes(scr)) go(scr,seg);
 }
 window.addEventListener('hashchange', applyHash);
 
 $('mKanjiCount').textContent = `${KANJI.length} kartu`;
 $('mKataCount').textContent = `${KATA.length} kata`;
 $('mPolaCount').textContent = `${POLA.length} pola`;
-$('mQuizCount').textContent = `${QUIZ.length} soal`;
+$('mReadCount').textContent = `${READING.length} teks`;
 
+/* ================= FURIGANA per bagian ================= */
+const FURI_SECTIONS = [
+  ['kanji','Kanji'],['kotoba','Kotoba'],['bunpou','Bunpou'],['contrast','Grammar Kontras'],
+  ['reading','Reading'],['listening','Listening'],['quiz','Soal'],['diagnostic','Diagnostic'],['mock','Mock Test'],
+];
+const FURI_TARGET = {
+  kanji:['[data-bpanel="kanji"]'], kotoba:['[data-bpanel="kotoba"]'], bunpou:['[data-bpanel="bunpou"]'],
+  contrast:['[data-bpanel="kontras"]'], reading:['[data-bpanel="bacaan"]'], listening:['#listenBox'],
+  quiz:['#quizRun'], diagnostic:['[data-screen="diag"]'], mock:['[data-screen="mock"]'],
+};
+function applyFuri(){
+  const f = state.furigana;
+  Object.entries(FURI_TARGET).forEach(([k,sels])=>{
+    sels.forEach(sel=>document.querySelectorAll(sel).forEach(el=>{
+      el.classList.toggle('nf', !f[k]);
+      el.classList.toggle('fo', !!f[k]);
+    }));
+  });
+}
+function renderFuri(){
+  $('furiList').innerHTML = FURI_SECTIONS.map(([k,label])=>{
+    const on = !!state.furigana[k];
+    return `<div class="furi-row"><b style="font-size:15px">${label}</b>
+      <button class="toggle-btn ${on?'on':''}" data-furi="${k}" aria-pressed="${on}">${on?'ON':'OFF'}</button></div>`;
+  }).join('');
+  document.querySelectorAll('[data-furi]').forEach(el=>el.addEventListener('click', ()=>{
+    const k = el.dataset.furi;
+    state.furigana[k] = !state.furigana[k];
+    save(); applyFuri(); renderFuri();
+  }));
+}
+function closeFuri(){ $('furiScrim').classList.remove('show'); $('furiSheet').classList.remove('show'); }
+$('btnFuri').addEventListener('click', ()=>{ renderFuri(); $('furiScrim').classList.add('show'); $('furiSheet').classList.add('show'); });
+$('furiClose').addEventListener('click', closeFuri);
+$('furiScrim').addEventListener('click', closeFuri);
 rolloverWindows();
 initStreak();
 save();
+applyFuri();
 renderKata();
 renderPola();
-renderQ();
+renderKontras();
+renderReadList();
+renderListen();
+renderPackList();
 startDeck(false);
 refreshStats();
 applyHash();
