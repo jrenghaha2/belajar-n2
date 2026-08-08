@@ -267,6 +267,9 @@
   .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
   .chip{border:1px solid var(--border); background:var(--surface); border-radius:10px; padding:10px 14px; min-height:44px; font-size:17px; font-weight:600}
   .chip.used{opacity:.35; pointer-events:none}
+  .mini-rev{border:none; background:var(--accent-soft); color:var(--accent); border-radius:999px; font-size:12px; font-weight:700; padding:3px 10px; min-height:26px; cursor:pointer}
+  .mini-rev:active{transform:scale(.97)}
+  .pola.tall.open .body{max-height:2200px}
   @media (prefers-reduced-motion: reduce){
     *{transition:none !important}
   }
@@ -561,9 +564,28 @@
         <h2 class="section">Profil kemampuanmu</h2>
         <p class="small muted mt8">Indikasi awal dari jawaban tesmu barusan - 4 soal per kategori, bukan pengukuran presisi.</p>
         <div class="card mt12" id="diagBars"></div>
-        <div class="explain mt16"><b>Rekomendasi</b><p class="mt8" id="diagReco"></p></div>
+        <div class="explain mt16"><b>Rekomendasi</b><p class="mt8" id="diagReco"></p><div class="mt8" id="diagRecoLinks"></div></div>
+        <button class="btn btn-outline btn-block mt16" id="btnDiagReview" style="display:none">🔎 Lihat soal yang salah (<span id="revCount">0</span>)</button>
+        <p class="small muted mt12" id="revAllRight" style="display:none; text-align:center">🎉 Semua soal benar — tidak ada yang perlu di-review.</p>
         <button class="btn btn-primary btn-block mt16" id="btnDiagDone">Lihat jalur belajar</button>
         <button class="btn btn-outline btn-block mt12" id="btnDiagRetake">Ulangi tes</button>
+      </div>
+      <div id="diagReview" hidden>
+        <button class="toggle-btn" id="revBack">← Kembali</button>
+        <h2 class="section mt16">🔎 Soal yang perlu diperbaiki</h2>
+        <p class="small muted mt8" id="revSummary"></p>
+        <div class="seg mini mt12" role="tablist" aria-label="Filter kategori">
+          <button data-revcat="all" class="active" role="tab">Semua</button>
+          <button data-revcat="kanji" role="tab">Kanji</button>
+          <button data-revcat="kotoba" role="tab">Kosakata</button>
+          <button data-revcat="grammar" role="tab">Grammar</button>
+        </div>
+        <div class="seg mini mt8" role="tablist" aria-label="Filter level">
+          <button data-revlv="all" class="active" role="tab">Semua level</button>
+          <button data-revlv="N3" role="tab">N3</button>
+          <button data-revlv="N2" role="tab">N2</button>
+        </div>
+        <div class="list mt12" id="revList"></div>
       </div>
     </section>
 
@@ -2857,8 +2879,10 @@ function renderDiagHome(){
       </div>
       <div class="mt8">${rows.map(([k,nm])=>`
         <div class="row between small"><span class="muted">${nm}</span><b>${d[k]}%</b></div>
-        <div class="bar" style="margin:4px 0 8px"><i style="width:${d[k]}%"></i></div>`).join('')}</div>`;
+        <div class="bar" style="margin:4px 0 8px"><i style="width:${d[k]}%"></i></div>`).join('')}</div>
+      ${revHomeLine()}`;
     $('diagRetake').addEventListener('click', ()=>go('diag'));
+    const rh=$('diagRevHome'); if(rh) rh.addEventListener('click', ()=>{ go('diag'); openDiagReview('all','home'); });
   }
 }
 
@@ -2907,7 +2931,7 @@ function renderPath(){
 /* ================= DIAGNOSTIC TEST: sesi acak dari bank soal ================= */
 const DIAG_PER_CAT = 4;                  /* 6 kategori x 4 soal = 24 soal per sesi (tetap) */
 const DIAG_PLAN = [['easy',1],['medium',2],['hard',1]]; /* campuran kesulitan per kategori */
-let di=0, dScore=null, dAnswered=false, dSession=[];
+let di=0, dScore=null, dAnswered=false, dSession=[], dLog=[], dT0=0;
 
 function diagBankFor(cat){ return DIAG_BANK.filter(q=>q.c===cat); }
 
@@ -2943,13 +2967,13 @@ function pickDiagCat(cat){
 function startDiag(){
   di=0;
   dScore={n3k:[0,0],n3v:[0,0],n3g:[0,0],n2k:[0,0],n2v:[0,0],n2g:[0,0]};
-  dSession=[];
+  dSession=[]; dLog=[];
   Object.keys(DIAG_CATS).forEach(cat=>{ dSession.push(...pickDiagCat(cat)); });
   $('diagIntro').hidden=true; $('diagResult').hidden=true; $('diagRun').hidden=false;
   renderD();
 }
 function renderD(){
-  dAnswered=false;
+  dAnswered=false; dT0=Date.now();
   const q = dSession[di];
   $('dCat').textContent = DIAG_CATS[q.c];
   $('dCounter').textContent = `Soal ${di+1}/${dSession.length}`;
@@ -2962,6 +2986,17 @@ function renderD(){
 function pickD(i){
   if(dAnswered) return; dAnswered=true;
   const q = dSession[di];
+  const entry = {id:q.id, c:q.c, lv:q.lv, topic:q.topic||'', type:q.type||'', q:q.q, opts:q.opts.slice(), mine:i, ans:q.a, ok:i===q.a, ms:Date.now()-dT0, d:q.d||'', tags:(q.tags||[]).slice()};
+  /* Metadata diagnosis Bunpou direkam saat tes berjalan: identitas pola tiap opsi (optPids)
+     dan pola yang benar (pid). Identitas hanya dari kecocokan PERSIS teks opsi dengan nama
+     kanonik di POLA - tanpa kecocokan persis id=null, tidak pernah dikarang.
+     Soal Kanji/Kosakata tidak diberi field ini sama sekali. */
+  if(REV_KIND(q.c)==='grammar'){
+    const meta = revResolvePola(entry);
+    entry.pid = meta.pid;
+    entry.optPids = meta.optPids;
+  }
+  dLog.push(entry);
   dScore[q.c][1]++;
   if(i===q.a){ dScore[q.c][0]++; addXp(5); }
   else recordError('diag:'+q.c);
@@ -2983,18 +3018,24 @@ function finishDiag(){
   });
   let totC=0, totN=0;
   Object.keys(dScore).forEach(k=>{ totC+=dScore[k][0]; totN+=dScore[k][1]; });
-  state.diagLast = {date: dayStr(), scores: d, correct: totC, total: totN};
+  state.diagLast = {date: dayStr(), scores: d, correct: totC, total: totN, log: dLog};
   if(!state.diagBest) state.diagBest = {};
   Object.keys(d).forEach(k=>{ state.diagBest[k] = Math.max(state.diagBest[k]||0, d[k]); });
   state.diagBest.total = Math.max(state.diagBest.total||0, pct(totC, totN));
   save();
   $('diagRun').hidden=true; $('diagResult').hidden=false;
   const rows = [['n3k','N3 Kanji'],['n3v','N3 Kosakata'],['n3g','N3 Grammar'],['n2k','N2 Kanji'],['n2v','N2 Kosakata'],['n2g','N2 Grammar']];
-  $('diagBars').innerHTML = rows.map(([k,nm])=>`
+  const wrongByCat = {};
+  dLog.forEach(e=>{ if(!e.ok) wrongByCat[e.c]=(wrongByCat[e.c]||0)+1; });
+  $('diagBars').innerHTML = rows.map(([k,nm])=>{
+    const w = wrongByCat[k]||0;
+    return `
     <div class="diag-row">
-      <div class="top"><span>${nm}</span><b>${d[k]}%</b></div>
+      <div class="top"><span>${nm}</span><span><b>${d[k]}%</b>${w?` <button class="mini-rev" data-drev="${k}" title="Lihat ${w} soal salah di kategori ini">🔎 ${w}</button>`:''}</span></div>
       <div class="bar"><i style="width:${d[k]}%"></i></div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+  document.querySelectorAll('[data-drev]').forEach(b=>b.addEventListener('click', ()=>openDiagReview(b.dataset.drev,'result')));
   const n3weak = [['n3k','Kanji'],['n3v','Kosakata'],['n3g','Grammar']].filter(([k])=>d[k]<70).map(x=>x[1]);
   let reco;
   if(n3weak.length){
@@ -3004,11 +3045,308 @@ function finishDiag(){
   }
   if(d.n2g<50) reco += ' Grammar N2-mu masih rendah — prioritaskan tab Kontras untuk pola yang mudah tertukar.';
   $('diagReco').textContent = reco;
+  const weakLinks = rows.filter(([k])=> (wrongByCat[k]||0)>0 && d[k]<70);
+  $('diagRecoLinks').innerHTML = weakLinks.length
+    ? '<span class="small muted">Telusuri penyebabnya:</span> ' + weakLinks.map(([k,nm])=>`<button class="mini-rev" data-rrec="${k}">${nm}</button>`).join(' ')
+    : '';
+  document.querySelectorAll('[data-rrec]').forEach(b=>b.addEventListener('click', ()=>openDiagReview(b.dataset.rrec,'result')));
+  const wrongN = dLog.filter(e=>!e.ok).length;
+  $('btnDiagReview').style.display = wrongN ? '' : 'none';
+  $('revAllRight').style.display = wrongN ? 'none' : '';
+  $('revCount').textContent = wrongN;
   refreshStats();
 }
 $('btnDiagStart').addEventListener('click', startDiag);
 $('btnDiagRetake').addEventListener('click', startDiag);
 $('btnDiagDone').addEventListener('click', ()=>go('home'));
+
+/* ================= DIAGNOSTIC REVIEW: soal salah dari jawaban aktual =================
+   Data berasal dari state.diagLast.log yang direkam pickD saat tes berjalan - bukan data acak.
+   Hasil tes lama tanpa log -> tampil pesan "Detail jawaban tidak tersedia". */
+let revCat='all', revLv='all', revFrom='result';
+const REV_KIND = c => c.endsWith('k') ? 'kanji' : (c.endsWith('v') ? 'kotoba' : 'grammar');
+const REV_KIND_LABEL = {kanji:'Kanji', kotoba:'Kosakata', grammar:'Grammar'};
+const REV_CAT_LABEL = {n3k:'N3 · Kanji', n3v:'N3 · Kosakata', n3g:'N3 · Grammar', n2k:'N2 · Kanji', n2v:'N2 · Kosakata', n2g:'N2 · Grammar'};
+const REV_STRIP = s => String(s).replace(/<[^>]+>/g,'');
+
+function diagLog(){ return (state.diagLast && Array.isArray(state.diagLast.log)) ? state.diagLast.log : null; }
+
+function openDiagReview(cat, from){
+  revFrom = from||'result';
+  if(cat && /^n\d/.test(cat)){ revCat = REV_KIND(cat); revLv = cat.slice(0,2).toUpperCase(); }
+  else { revCat = cat||'all'; revLv = 'all'; }
+  $('diagIntro').hidden=true; $('diagRun').hidden=true; $('diagResult').hidden=true;
+  $('diagReview').hidden=false;
+  renderDiagReview();
+  document.getElementById('main').scrollTop = 0;
+}
+function closeDiagReview(){
+  $('diagReview').hidden=true;
+  if(revFrom==='home') $('diagIntro').hidden=false; else $('diagResult').hidden=false;
+  document.getElementById('main').scrollTop = 0;
+}
+
+/* Teks pola tanpa ruby / tanda 〜 agar bisa dicocokkan dengan opsi jawaban. */
+function polaPlain(p){ return REV_STRIP(p.p).replace(/^〜/,'').trim(); }
+
+/* ============ Deteksi jenis kesalahan Bunpou: konservatif & berbasis metadata ============
+   Prinsip: AKURASI > JUMLAH DIAGNOSIS. Jenis kesalahan hanya boleh diklaim bila dibuktikan
+   oleh data soal + metadata grammar (POLA / POLA_EXTRA). Kemiripan karakter dan perbandingan
+   substring TIDAK pernah dipakai sebagai bukti jenis kesalahan. Bila bukti tidak cukup,
+   sistem WAJIB memakai fallback aman:
+   "Jenis kesalahan belum dapat dipastikan dari jawaban ini." */
+
+/* Normalisasi teks untuk IDENTITAS (bukan kemiripan): buang ruby/HTML, spasi pinggir, 〜 di awal.
+   Urutan penting: spasi dipangkas SEBELUM 〜 — entri metadata hasil pecahan daftar "A / B"
+   (mis. ' 〜どころか') dengan demikian ikut ternormalisasi menjadi 'どころか'. */
+function polaNameKey(s){ return REV_STRIP(String(s==null?'':s)).trim().replace(/^〜/,'').trim(); }
+
+/* Peta nama pola -> id POLA, dibangun sekali dari database. Nama yang dipakai lebih dari satu
+   pola dianggap ambigu dan tidak pernah dipakai untuk identifikasi (lebih baik null). */
+const POLA_NAME_IDS = (()=>{
+  const m = {};
+  POLA.forEach(p=>{ const k = polaNameKey(p.p); (m[k]=m[k]||[]).push(p.id); });
+  Object.keys(m).forEach(k=>{ if(m[k].length>1) delete m[k]; });
+  return m;
+})();
+
+/* Identitas pola sebuah opsi: hanya bila teks opsi PERSIS sama dengan nama kanonik tepat satu
+   pola di POLA. Inilah hubungan soal -> opsi -> pola yang diketahui. Selain itu: null (tidak
+   pernah mengarang id untuk opsi tanpa hubungan nyata dengan database). */
+function polaIdFromText(s){ const ids = POLA_NAME_IDS[polaNameKey(s)]; return ids ? ids[0] : null; }
+
+/* Nama-nama pola yang tercatat mudah tertukar dengan suatu pola, dari metadata POLA_EXTRA.simi.
+   Format simi: '〜A / 〜B = catatan; 〜C' -> ['A','B','C']. Murni pembacaan metadata. */
+function polaSimiNames(simi){
+  if(!simi) return [];
+  return String(simi).split(/[\/;]/)
+    .map(part=>polaNameKey(part.split('=')[0].replace(/[（(].*$/,'')))
+    .filter(Boolean);
+}
+
+/* Parse metadata miss menjadi ID pola yang BENAR-BENAR disebut eksplisit di dalamnya.
+   - Segmen "✗ ... -> ✓ ..." adalah contoh kesalahan BENTUK, bukan daftar pola -> dibuang dulu.
+   - Tiap run teks Jepang menjadi KANDIDAT nama pola; teks penjelasan (Indonesia) tak pernah
+     menjadi kandidat.
+   - Kandidat diverifikasi ke database POLA lewat exact identity (POLA_NAME_IDS via polaIdFromText):
+     cocok persis dengan nama kanonik & ID unik -> diakui; selain itu dibuang (tidak mengarang ID).
+   - Regex hanya dipakai untuk PARSING struktur kalimat; bukti akhir = exact match ke POLA.
+     Tanpa indexOf/includes/substring/fuzzy/similarity terhadap nama pola.
+   Hasil: array ID pola unik, urut kemunculan. Mis. '〜わけではない ≠ 〜わけがない' -> ['p3','p6']. */
+function parseMissPatternIds(miss){
+  if(!miss) return [];
+  const body = String(miss).replace(/✗[^→]*→[^。.;\n]*/g, ' ');
+  const ids = [];
+  const re = /[〜々〆ヶぁ-んァ-ヶー一-龯]+/g;
+  let m;
+  while((m = re.exec(body))){
+    const key = polaNameKey(m[0]);
+    if(key.length < 2) continue;      /* terlalu pendek -> rawan; abaikan (konservatif) */
+    const id = polaIdFromText(key);   /* exact identity ke POLA; null bila tak ada/ambigu */
+    if(id && !ids.includes(id)) ids.push(id);
+  }
+  return ids;
+}
+
+/* Resolusi pola untuk 1 entri log: pola benar (pid) + identitas pola tiap opsi (optPids).
+   Urutan sumber: metadata yang direkam pickD -> tag soal -> identitas persis teks opsi benar.
+   Id tersimpan yang tidak lagi ada di POLA dibuang, sehingga data localStorage lama tetap aman. */
+function revResolvePola(e){
+  const tags = Array.isArray(e.tags) ? e.tags : [];
+  const opts = Array.isArray(e.opts) ? e.opts : [];
+  const valid = id => typeof id==='string' && POLA.some(p=>p.id===id);
+  let pid = valid(e.pid) ? e.pid : null;
+  if(!pid) pid = tags.find(t=>valid(t)) || null;
+  const optPids = (Array.isArray(e.optPids) && e.optPids.length===opts.length)
+    ? e.optPids.map(id=>valid(id)?id:null)
+    : opts.map(o=>polaIdFromText(o));
+  if(!pid && Number.isInteger(e.ans) && optPids[e.ans]) pid = optPids[e.ans];
+  return {pid, optPids};
+}
+
+/* Diagnosis jenis kesalahan Bunpou. Hanya kategori yang terbukti dari metadata yang dihasilkan:
+   B) "kemungkinan salah bentuk / 接続" - metadata kesalahan umum (miss) pola benar memuat
+      pasangan terdokumentasi "✗ bentuk-salah -> ✓ bentuk-benar" dan opsi yang dipilih PERSIS
+      bentuk salah itu (bentuk keliru pola yang sama, bukan pola grammar lain).
+   D) "salah membedakan pola mirip" - metadata simi/miss mencatat pola benar & pola terpilih
+      sebagai pasangan yang mudah tertukar, dan soal ini memang menyajikan keduanya sebagai
+      opsi yang berbeda (konteks soal membedakan keduanya).
+   E) fallback aman - bukti tidak cukup untuk menyebut penyebab.
+   Kategori "salah memilih pola" & "salah memahami makna/fungsi" sengaja TIDAK dipakai:
+   metadata soal saat ini tidak cukup untuk membuktikannya tanpa menebak. */
+function revErrorKind(e, pid, p, optPids){
+  const opts = Array.isArray(e.opts) ? e.opts : [];
+  if(!opts.length || e.mine==null || e.ans==null || e.mine===e.ans) return '';
+  const x = POLA_EXTRA[pid] || {};
+  const chosenTxt = polaNameKey(opts[e.mine]);
+  const correctTxt = polaNameKey(opts[e.ans]);
+  const chosenPid = (optPids && optPids[e.mine] && optPids[e.mine]!==pid) ? optPids[e.mine] : null;
+  const chosenPola = chosenPid ? POLA.find(q=>q.id===chosenPid) : null;
+  const chosenName = chosenPola ? polaNameKey(chosenPola.p) : chosenTxt;
+
+  /* B) Salah bentuk / 接続: miss pola benar memuat "✗ ... -> ✓ ..." dan pilihanmu persis bentuk
+     keliru yang terdokumentasi untuk pola ini. */
+  const mm = x.miss ? String(x.miss).match(/✗\s*([^→✓]+?)\s*→\s*✓\s*(.+)$/) : null;
+  const missForm = s => polaNameKey(String(s).replace(/[。.．、,]+$/,''));
+  if(mm && chosenTxt===missForm(mm[1]) && correctTxt===missForm(mm[2])){
+    return `Jenis kesalahan: <b>kemungkinan salah bentuk / 接続</b> — bentuk yang kamu pilih tercatat sebagai bentuk keliru yang umum untuk pola ini. Bentuk yang tepat: <b>${REV_STRIP(opts[e.ans])}</b>.`;
+  }
+
+  /* D) Salah membedakan pola mirip: pola terpilih disebut eksplisit dalam metadata simi pola
+     benar (atau pola benar disebut dalam simi pola terpilih), atau metadata miss pola benar
+     secara eksplisit menamai pola terpilih sebagai hal yang mudah tertukar. Identitas pola
+     terpilih sudah dibuktikan lewat kecocokan persis; metadata yang menyatakan hubungannya. */
+  const correctName = polaNameKey(p.p);
+  const linkedBySimi = polaSimiNames(x.simi).some(n=>n===chosenName)
+                    || (chosenPid ? polaSimiNames((POLA_EXTRA[chosenPid]||{}).simi).some(n=>n===correctName) : false);
+  /* namedInMiss: ID pola terpilih termasuk daftar ID pola yang TERVERIFIKASI disebut eksplisit
+     di metadata miss pola benar - exact entity via parseMissPatternIds, BUKAN substring.
+     (Segmen ✗->✓ sudah dibuang di dalam parser, jadi miss bentuk tak pernah menghasilkan entitas.) */
+  const namedInMiss = !!chosenPid && parseMissPatternIds(x.miss).includes(chosenPid);
+  if(linkedBySimi || namedInMiss){
+    const chosenLabel = chosenPola ? `${chosenPola.p} (${chosenPola.m})` : `〜${chosenTxt}`;
+    return `Jenis kesalahan: <b>salah membedakan pola mirip</b> — kamu memilih <b>${chosenLabel}</b>, padahal konteks kalimat ini meminta <b>${p.p}</b> (${p.m}). Keduanya tercatat di metadata sebagai pola yang mudah tertukar — perhatikan perbedaannya pada catatan kesalahan umum & nuansa di bawah.`;
+  }
+
+  /* E) Fallback aman: bukti tidak cukup untuk menyebut penyebab. Bila opsi terpilih terverifikasi
+     sebagai pola lain di database, fakta itu boleh disampaikan - tanpa mengklaim bahwa itulah
+     penyebab kesalahan (bisa saja konteks, nuansa, atau fungsi yang belum dipahami). */
+  let msg = 'Jenis kesalahan <b>belum dapat dipastikan</b> dari jawaban ini.';
+  if(chosenPola) msg += ` Yang terverifikasi dari data: opsi yang kamu pilih adalah pola <b>${chosenPola.p}</b> (${chosenPola.m}) — bandingkan fungsi & nuansanya dengan <b>${p.p}</b> (${p.m}) di bawah.`;
+  return msg;
+}
+
+/* Feedback Bunpou: seluruhnya dari metadata POLA / POLA_EXTRA di database materi - bukan karangan. */
+function revGrammarBlock(e){
+  if(REV_KIND(e.c)!=='grammar') return '';
+  /* Resolusi pid: metadata log (pickD) -> tag soal -> identitas persis opsi benar.
+     Tanpa satu pun bukti itu, blok feedback tidak ditampilkan (tidak menebak pola). */
+  const {pid, optPids} = revResolvePola(e);
+  if(!pid) return '';
+  const p = POLA.find(x=>x.id===pid);
+  const x = POLA_EXTRA[pid]||{};
+  return `
+    <div class="ex-box" style="margin-top:12px">
+      <div class="label" style="font-size:12px">Feedback Bunpou</div>
+      <div class="small mt8">Pola: <b>${p.p}</b> — ${p.m}</div>
+      <div class="small mt8">${revErrorKind(e, pid, p, optPids)}</div>
+      <div class="mt12"><b class="small">Yang perlu diingat:</b></div>
+      <div class="small mt8">📌 Pola: ${p.p} (${p.m})</div>
+      ${x.setsu?`<div class="small mt8">🧩 Rumus/接続: ${x.setsu}</div>`:''}
+      <div class="small mt8">✅ Alasan jawaban benar: ${e.d||p.d}</div>
+      ${x.miss?`<div class="small mt8">⚠️ Kesalahan umum: ${x.miss}</div>`:''}
+      ${x.nua?`<div class="small mt8">💡 Nuansa: ${x.nua}</div>`:''}
+      <div class="ex-box" style="margin-top:10px"><div>${p.ex}</div><div class="example-id">${p.exi}</div></div>
+    </div>`;
+}
+
+/* Materi terkait untuk soal Kanji/Kosakata, diambil dari KANJI/KATA yang dirujuk tag soal. */
+function revMateriBlock(e){
+  const kid = (e.tags||[]).find(t=>/^k\d+$/.test(t));
+  if(kid){
+    const k = KANJI.find(x=>x.id===kid);
+    if(k) return `
+    <div class="ex-box" style="margin-top:12px">
+      <div class="label" style="font-size:12px">Materi terkait</div>
+      <div class="mt8" style="font-size:20px"><ruby>${k.k}<rt>${k.r}</rt></ruby> <span class="muted small">${k.r}</span></div>
+      <div class="small mt8">${k.m}</div>
+      <div class="small mt8 muted">${k.ex} — ${k.exi}</div>
+    </div>`;
+  }
+  const wid = (e.tags||[]).find(t=>/^w\d+$/.test(t));
+  if(wid){
+    const w = KATA.find(x=>x.id===wid);
+    if(w) return `
+    <div class="ex-box" style="margin-top:12px">
+      <div class="label" style="font-size:12px">Materi terkait</div>
+      <div class="mt8" style="font-weight:700">${w.w} <span class="muted small">${w.r}</span></div>
+      <div class="small mt8">${w.m}</div>
+      <div class="small mt8 muted">${w.ex} — ${w.exi}</div>
+    </div>`;
+  }
+  return '';
+}
+
+/* Detail kartu: soal lengkap, opsi bertanda (✓ benar / ✗ pilihanmu), pembahasan, feedback. */
+function revDetailHTML(e){
+  const optsHtml = e.opts.map((o,i)=>{
+    let cls='opt', mark='';
+    if(i===e.ans){ cls+=' correct'; mark=' ✓'; }
+    if(i===e.mine && i!==e.ans){ cls+=' wrong'; mark=' ✗ pilihanmu'; }
+    return `<div class="${cls}" style="cursor:default"><span class="key">${'ABCD'[i]}</span><span>${o}${mark}</span></div>`;
+  }).join('');
+  const sec = Math.max(1, Math.round((e.ms||0)/1000));
+  return `
+    <p class="q-sentence" style="font-size:17px">${String(e.q).replace('____','<span class="blank">＿＿＿</span>')}</p>
+    <div class="opts mt8" style="margin-top:10px">${optsHtml}</div>
+    <div class="small mt12">Jawabanmu: <b style="color:var(--red)">${'ABCD'[e.mine]}. ${e.opts[e.mine]}</b></div>
+    <div class="small mt8">Jawaban benar: <b style="color:var(--green)">${'ABCD'[e.ans]}. ${e.opts[e.ans]}</b></div>
+    <div class="mini-note mt8">${REV_CAT_LABEL[e.c]||e.c} · ${e.type||'soal'} · ${sec} dtk</div>
+    ${e.d?`<div class="explain" style="margin-top:12px"><b>Pembahasan</b><p class="mt8">${e.d}</p></div>`:''}
+    ${revGrammarBlock(e)}
+    ${revMateriBlock(e)}
+  `;
+}
+
+function renderDiagReview(){
+  document.querySelectorAll('[data-revcat]').forEach(b=>b.classList.toggle('active', b.dataset.revcat===revCat));
+  document.querySelectorAll('[data-revlv]').forEach(b=>b.classList.toggle('active', b.dataset.revlv===revLv));
+  const list = $('revList');
+  const log = diagLog();
+  if(!log){
+    $('revSummary').textContent = '';
+    list.innerHTML = '<div class="card"><p class="small muted">Detail jawaban tidak tersedia untuk tes ini. Kerjakan tes diagnostik terbaru — detail per soal mulai terekam dari tes itu.</p></div>';
+    return;
+  }
+  const wrong = log.filter(e=>!e.ok);
+  const filtered = wrong.filter(e=>(revCat==='all'||REV_KIND(e.c)===revCat)&&(revLv==='all'||e.lv===revLv));
+  $('revSummary').textContent = `${wrong.length} soal salah dari ${log.length} soal · tes ${state.diagLast.date}`;
+  if(!wrong.length){
+    list.innerHTML = '<div class="card done"><div class="big">🎉</div><p class="small muted mt8">Tes terakhir tanpa kesalahan — tidak ada yang perlu di-review.</p></div>';
+    return;
+  }
+  if(!filtered.length){
+    list.innerHTML = '<p class="muted small">Tidak ada soal salah pada filter ini.</p>';
+    return;
+  }
+  list.innerHTML = filtered.map((e,ix)=>`
+    <div class="card pola tall" data-rev="${ix}" data-qid="${e.id}">
+      <button aria-expanded="false">
+        <span class="lvl ${e.lv==='N3'?'n3':'n2'}">${e.lv}</span>
+        <div>
+          <div class="jp" style="font-size:15px; line-height:1.5">${String(e.q).replace('____','＿＿＿')}</div>
+          <div class="sub mt8">${REV_KIND_LABEL[REV_KIND(e.c)]}${e.topic?' · '+e.topic:''}</div>
+          <div class="sub" style="margin-top:4px">Jawabanmu: <b style="color:var(--red)">${'ABCD'[e.mine]}</b> · Benar: <b style="color:var(--green)">${'ABCD'[e.ans]}</b> · <span style="color:var(--accent); font-weight:600">Lihat pembahasan</span></div>
+        </div>
+        <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+      <div class="body"><div class="inner">${revDetailHTML(e)}</div></div>
+    </div>`).join('');
+}
+
+/* Baris review kecil di kartu diagnostik Home (hanya bila detail tersedia; hasil lama -> catatan aman). */
+function revHomeLine(){
+  const log = diagLog();
+  if(!log) return '<p class="mini-note mt8">🔎 Detail per soal terekam mulai tes diagnostik berikutnya.</p>';
+  const w = log.filter(e=>!e.ok).length;
+  return w
+    ? `<button class="mini-rev mt8" id="diagRevHome" style="min-height:32px">🔎 Review ${w} soal salah dari tes ${state.diagLast.date}</button>`
+    : '<p class="mini-note mt8">Tes terakhir: semua soal benar 🎉</p>';
+}
+
+$('revBack').addEventListener('click', closeDiagReview);
+$('btnDiagReview').addEventListener('click', ()=>openDiagReview('all','result'));
+document.querySelectorAll('[data-revcat]').forEach(b=>b.addEventListener('click', ()=>{ revCat=b.dataset.revcat; renderDiagReview(); }));
+document.querySelectorAll('[data-revlv]').forEach(b=>b.addEventListener('click', ()=>{ revLv=b.dataset.revlv; renderDiagReview(); }));
+$('revList').addEventListener('click', e=>{
+  const btn = e.target.closest('[data-rev] > button');
+  if(!btn) return;
+  const box = btn.closest('.pola');
+  const opening = !box.classList.contains('open');
+  box.classList.toggle('open');
+  btn.setAttribute('aria-expanded', opening);
+});
+
 
 /* ================= FLASHCARD KANJI ================= */
 let deck=[], ci=0, flipped=false, sessionXp=0, shuffleOn=false;
