@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>N2 Jago — Persiapan JLPT N2</title>
+<style>
+  :root{
+    --text:#2C2C2B; --text2:#7D7A75;
+    --canvas:#FFFFFF; --surface:#F9F8F7; --surface2:#F0EFED;
+    --border:#E6E5E3;
+    --accent:#2783DE; --accent-soft:#E5F2FC;
+    --green:#46A171; --green-soft:#E8F1EC;
+    --orange:#D5803B; --orange-soft:#FBEBDE;
+    --red:#E56458; --red-soft:#FCE9E7;
+    --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 12px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --text:#FFFFFF; --text2:rgba(255,255,255,.65);
+      --canvas:#191919; --surface:#202020; --surface2:#383836;
+      --border:rgba(255,255,255,.20);
+      --accent:#5E9FE8; --accent-soft:rgba(94,159,232,.14);
+      --green:#72BC8F; --green-soft:rgba(114,188,143,.12);
+      --orange:#DE9255; --orange-soft:rgba(222,146,85,.12);
+      --red:#E97366; --red-soft:rgba(233,115,102,.12);
+      --shadow:none;
+    }
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP","Helvetica Neue",Arial,sans-serif;
+    background:var(--surface2); color:var(--text);
+    font-size:16px; line-height:1.5;
+  }
+  .phone{
+    max-width:430px; margin:0 auto; height:100dvh;
+    display:flex; flex-direction:column;
+    background:var(--canvas);
+    border-left:1px solid var(--border); border-right:1px solid var(--border);
+  }
+  .appbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 20px; border-bottom:1px solid var(--border);
+    background:var(--canvas); position:relative; z-index:5;
+  }
+  .brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:17px}
+  .logo{
+    width:32px; height:32px; border-radius:8px; background:var(--accent);
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    font-size:16px; font-weight:700;
+  }
+  .pill{
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--orange-soft); color:var(--orange);
+    font-weight:600; font-size:14px; padding:6px 12px; border-radius:999px;
+  }
+  main{flex:1; overflow-y:auto; overscroll-behavior:contain;}
+  .screen{display:none; padding:20px; padding-bottom:28px;}
+  .screen.active{display:block;}
+  .greet h1{font-size:24px; line-height:1.25; letter-spacing:-.01em}
+  .greet p{color:var(--text2); margin-top:4px}
+  .mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt20{margin-top:20px}.mt24{margin-top:24px}
+  .card{
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:16px;
+  }
+  .card.tint{background:var(--accent-soft); border-color:transparent}
+  .label{font-size:14px; font-weight:600; color:var(--text2); text-transform:uppercase; letter-spacing:.04em}
+  .row{display:flex; align-items:center; gap:14px}
+  .between{justify-content:space-between}
+  .grow{flex:1}
+  h2.section{font-size:18px; letter-spacing:-.01em}
+  .muted{color:var(--text2)}
+  .small{font-size:14px}
+  .ring{position:relative; width:84px; height:84px; flex:none}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .pct{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:18px;
+  }
+  button{font-family:inherit; cursor:pointer; font-size:16px; color:inherit}
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    min-height:48px; padding:12px 18px; border-radius:10px;
+    font-weight:600; font-size:16px; border:1px solid transparent;
+    transition:opacity .15s ease, transform .05s ease;
+  }
+  .btn:active{transform:scale(.98)}
+  .btn-primary{background:var(--accent); color:#fff}
+  .btn-green{background:var(--green); color:#fff}
+  .btn-outline{background:var(--canvas); border-color:var(--border); color:var(--text)}
+  .btn-orange{background:var(--orange-soft); color:var(--orange); border-color:transparent}
+  .btn-block{width:100%}
+  .btn[disabled]{opacity:.5; pointer-events:none}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .materi{
+    text-align:left; background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:16px; min-height:96px;
+    display:flex; flex-direction:column; gap:6px; justify-content:center;
+  }
+  .materi .glyph{font-size:26px; line-height:1.2}
+  .materi b{font-size:16px}
+  .materi span{font-size:14px; color:var(--text2)}
+  .bar{height:8px; background:var(--surface2); border-radius:999px; overflow:hidden}
+  .bar>i{display:block; height:100%; width:0; background:var(--accent); border-radius:inherit; transition:width .35s ease}
+  .bar.green>i{background:var(--green)}
+  .bar.orange>i{background:var(--orange)}
+  .tabbar{
+    display:grid; grid-template-columns:repeat(4,1fr);
+    border-top:1px solid var(--border); background:var(--canvas);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .tabbar button{
+    border:none; background:none; min-height:58px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    color:var(--text2); font-size:14px; font-weight:500;
+  }
+  .tabbar button svg{width:22px; height:22px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round}
+  .tabbar button.active{color:var(--accent); font-weight:600}
+  .seg{display:flex; background:var(--surface2); border-radius:10px; padding:4px; gap:4px}
+  .seg button{
+    flex:1; min-height:44px; border:none; border-radius:8px; background:transparent;
+    color:var(--text2); font-size:15px; font-weight:600;
+  }
+  .seg button.active{background:var(--canvas); color:var(--text); border:1px solid var(--border); box-shadow:var(--shadow)}
+  .seg.mini button{min-height:40px; font-size:14px}
+  .flash-wrap{perspective:1200px}
+  .flashcard{
+    position:relative; width:100%; height:320px;
+    transform-style:preserve-3d; transition:transform .45s ease;
+  }
+  .flashcard.flipped{transform:rotateY(180deg)}
+  .face{
+    position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+    border-radius:14px; border:1px solid var(--border);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+    padding:20px; text-align:center;
+  }
+  .face.front{background:var(--surface)}
+  .face.back{background:var(--accent-soft); border-color:transparent; transform:rotateY(180deg)}
+  .kanji-big{font-size:88px; line-height:1.1; font-weight:600}
+  .hint{font-size:14px; color:var(--text2)}
+  .reading{font-size:26px; font-weight:700; color:var(--accent)}
+  .meaning{font-size:20px; font-weight:600}
+  .example{font-size:16px}
+  .example-id{font-size:14px; color:var(--text2)}
+  .fc-actions{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px}
+  .list{display:flex; flex-direction:column; gap:10px}
+  .item{
+    display:flex; align-items:center; gap:12px; width:100%;
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:14px 16px; min-height:56px; text-align:left;
+  }
+  .item .chev{margin-left:auto; color:var(--text2); flex:none}
+  .item .jp{font-size:18px; font-weight:600}
+  .item .sub{font-size:14px; color:var(--text2)}
+  .search{
+    width:100%; min-height:48px; border-radius:10px; border:1px solid var(--border);
+    background:var(--surface); padding:10px 14px 10px 42px; font-size:16px; color:var(--text);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%237D7A75' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:12px center;
+  }
+  .search:focus{outline:2px solid var(--accent); outline-offset:1px}
+  .pola{overflow:hidden; padding:0}
+  .pola>button{
+    width:100%; background:none; border:none; text-align:left;
+    padding:14px 16px; display:flex; align-items:center; gap:10px; min-height:56px;
+  }
+  .pola .body{max-height:0; overflow:hidden; transition:max-height .3s ease; }
+  .pola.open .body{max-height:600px}
+  .pola .inner{padding:0 16px 16px; display:flex; flex-direction:column; gap:10px}
+  .pola .chev{transition:transform .25s ease; margin-left:auto; color:var(--text2); flex:none}
+  .pola.open .chev{transform:rotate(90deg)}
+  .ex-box{background:var(--canvas); border:1px solid var(--border); border-radius:10px; padding:12px 14px}
+  ruby rt{font-size:.62em; color:var(--text2); font-weight:500}
+  .lvl{
+    font-size:12px; font-weight:700; padding:2px 8px; border-radius:999px; flex:none;
+    letter-spacing:.03em;
+  }
+  .lvl.n2{background:var(--accent-soft); color:var(--accent)}
+  .lvl.n3{background:var(--green-soft); color:var(--green)}
+  .q-sentence{font-size:19px; line-height:1.6; font-weight:600}
+  .blank{color:var(--accent); font-weight:700}
+  .opts{display:flex; flex-direction:column; gap:10px; margin-top:16px}
+  .opt{
+    width:100%; text-align:left; min-height:52px;
+    border:1px solid var(--border); border-radius:10px; background:var(--surface);
+    padding:14px 16px; font-size:17px; display:flex; align-items:center; gap:12px;
+  }
+  .opt .key{
+    width:28px; height:28px; border-radius:8px; background:var(--surface2);
+    display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; flex:none;
+  }
+  .opt.correct{border-color:var(--green); background:var(--green-soft)}
+  .opt.correct .key{background:var(--green); color:#fff}
+  .opt.wrong{border-color:var(--red); background:var(--red-soft)}
+  .opt.wrong .key{background:var(--red); color:#fff}
+  .explain{border-radius:12px; background:var(--accent-soft); padding:16px; margin-top:16px}
+  .explain b{color:var(--accent)}
+  .days{display:flex; gap:8px; justify-content:space-between; margin-top:12px}
+  .day{display:flex; flex-direction:column; align-items:center; gap:6px; font-size:14px; color:var(--text2)}
+  .dot{width:34px; height:34px; border-radius:50%; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:15px}
+  .dot.on{background:var(--orange-soft)}
+  .statbar{display:flex; flex-direction:column; gap:6px; margin-top:14px}
+  .statbar .top{display:flex; justify-content:space-between; font-size:15px}
+  .tiles{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .tile{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 10px; text-align:center}
+  .tile b{font-size:22px; display:block}
+  .tile span{font-size:14px; color:var(--text2)}
+  .badge{
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:16px 12px; text-align:center; display:flex; flex-direction:column; gap:6px; align-items:center;
+  }
+  .badge .emo{font-size:30px; line-height:1}
+  .badge b{font-size:15px}
+  .badge span{font-size:14px; color:var(--text2)}
+  .badge.locked{opacity:.55}
+  .badge.locked .emo{filter:grayscale(1)}
+  .lb{display:flex; flex-direction:column; gap:8px}
+  .lb-row{display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:var(--surface); min-height:56px}
+  .lb-row.me{background:var(--accent-soft); border-color:transparent}
+  .rank{width:30px; height:30px; border-radius:50%; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; flex:none}
+  .lb-row.me .rank{background:var(--accent); color:#fff}
+  .xp{margin-left:auto; font-weight:700; font-size:15px}
+  .scrim{
+    position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:20;
+    opacity:0; pointer-events:none; transition:opacity .2s ease;
+  }
+  .scrim.show{opacity:1; pointer-events:auto}
+  .sheet{
+    position:fixed; bottom:0; left:50%; transform:translate(-50%,100%);
+    width:min(430px,100%); max-height:82dvh; overflow-y:auto;
+    background:var(--canvas); border-radius:16px 16px 0 0; z-index:21;
+    transition:transform .25s ease; padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+    border:1px solid var(--border); border-bottom:none;
+  }
+  .sheet.show{transform:translate(-50%,0)}
+  .grab{width:40px; height:4px; border-radius:999px; background:var(--surface2); margin:0 auto 16px}
+  .tag{display:inline-block; background:var(--accent-soft); color:var(--accent); font-size:14px; font-weight:600; padding:4px 10px; border-radius:999px}
+  .tag.green{background:var(--green-soft); color:var(--green)}
+  .tag.orange{background:var(--orange-soft); color:var(--orange)}
+  .done{text-align:center; padding:32px 16px}
+  .done .big{font-size:44px}
+  .reset-link{background:none; border:none; color:var(--text2); font-size:14px; text-decoration:underline; padding:12px; min-height:44px}
+  .toggle-btn{
+    border:1px solid var(--border); background:var(--surface); border-radius:999px;
+    padding:8px 14px; min-height:40px; font-size:14px; font-weight:600; color:var(--text2);
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .toggle-btn.on{background:var(--accent-soft); color:var(--accent); border-color:transparent}
+  .hafal-btn.on{background:var(--green-soft); color:var(--green); border-color:transparent}
+  .item .marks{margin-left:auto; display:flex; gap:6px; flex:none}
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <header class="appbar">
+    <div class="brand"><span class="logo">日</span> N2 Jago</div>
+    <span class="pill" id="streakPill" aria-label="Rantai belajar">🔥 <span id="streakNum">0</span> hari</span>
+  </header>
+
+  <main id="main">
+    <!-- ============ BERANDA ============ -->
+    <section class="screen" data-screen="home">
+      <div class="greet">
+        <h1 id="greeting">Selamat pagi! 👋</h1>
+        <p>Siap lanjutkan persiapan JLPT N2 hari ini?</p>
+      </div>
+
+      <div class="card mt16">
+        <div class="row">
+          <div class="ring" role="img" aria-label="Persentase persiapan">
+            <svg width="84" height="84" viewBox="0 0 84 84">
+              <circle cx="42" cy="42" r="36" fill="none" stroke="var(--surface2)" stroke-width="8"/>
+              <circle id="ringFg" cx="42" cy="42" r="36" fill="none" stroke="var(--accent)" stroke-width="8"
+                stroke-linecap="round" stroke-dasharray="226.2" stroke-dashoffset="226.2"/>
+            </svg>
+            <div class="pct" id="ringPct">0%</div>
+          </div>
+          <div class="grow">
+            <div class="label">Persiapan N2</div>
+            <div class="mt8 small" id="homeKanjiStat">0 kanji hafal</div>
+            <div class="small muted" id="homeQuizStat">Skor latihan terbaik: –</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card tint mt16">
+        <div class="label">Lanjut belajar</div>
+        <div class="mt8" style="font-size:18px; font-weight:700" id="resumeTitle">Flashcard Kanji</div>
+        <div class="small muted" id="resumeSub">Mulai sesi kartu pertamamu</div>
+        <button class="btn btn-primary btn-block mt12" id="resumeBtn">Lanjutkan</button>
+      </div>
+
+      <h2 class="section mt24">Menu materi</h2>
+      <div class="grid2 mt12">
+        <button class="materi" data-go="belajar" data-seg="kanji">
+          <span class="glyph">漢</span><b>Kanji</b><span id="mKanjiCount">Flashcard N2</span>
+        </button>
+        <button class="materi" data-go="belajar" data-seg="kotoba">
+          <span class="glyph">語</span><b>Kotoba</b><span id="mKataCount">Kosakata</span>
+        </button>
+        <button class="materi" data-go="belajar" data-seg="bunpou">
+          <span class="glyph">文</span><b>Bunpou</b><span id="mPolaCount">Pola kalimat</span>
+        </button>
+        <button class="materi" data-go="soal">
+          <span class="glyph">題</span><b>Latihan Soal</b><span id="mQuizCount">Paket campuran</span>
+        </button>
+      </div>
+
+      <div class="card mt24">
+        <div class="row between">
+          <div>
+            <div class="label">Tantangan harian</div>
+            <div class="mt8" style="font-weight:600">Ulas 20 kartu hari ini</div>
+          </div>
+          <b id="homeChallengeCount" style="color:var(--orange)">0/20</b>
+        </div>
+        <div class="bar orange mt12"><i id="homeChallengeBar"></i></div>
+        <button class="btn btn-outline btn-block mt12" data-go="progres" data-seg="tantangan">Lihat tantangan</button>
+      </div>
+    </section>
+
+    <!-- ============ BELAJAR ============ -->
+    <section class="screen" data-screen="belajar">
+      <div class="seg" role="tablist" aria-label="Materi">
+        <button data-bseg="kanji" class="active" role="tab">Kanji</button>
+        <button data-bseg="kotoba" role="tab">Kotoba</button>
+        <button data-bseg="bunpou" role="tab">Bunpou</button>
+      </div>
+
+      <!-- ====== KANJI ====== -->
+      <div data-bpanel="kanji">
+        <div class="seg mini mt16" role="tablist" aria-label="Tampilan kanji">
+          <button data-kview="kartu" class="active" role="tab">🃏 Kartu</button>
+          <button data-kview="list" role="tab">📋 Daftar</button>
+        </div>
+
+        <div data-kpanel="kartu">
+          <div class="row between mt16">
+            <span class="small muted" id="cardCounter">Kartu 1</span>
+            <button class="toggle-btn" id="btnShuffle" aria-pressed="false">🔀 Acak: mati</button>
+          </div>
+          <div class="row between mt8">
+            <span class="small" style="color:var(--green); font-weight:600" id="masteredInfo">0 hafal</span>
+          </div>
+          <div class="bar mt8"><i id="cardBar"></i></div>
+
+          <div class="flash-wrap mt16" id="flashWrap">
+            <div class="flashcard" id="flashcard" role="button" tabindex="0" aria-label="Kartu kanji, ketuk untuk membalik">
+              <div class="face front">
+                <div class="kanji-big" id="cardKanji">曖昧</div>
+                <div class="hint">Ketuk kartu untuk membalik</div>
+              </div>
+              <div class="face back">
+                <div class="reading" id="cardReading">あいまい</div>
+                <div class="meaning" id="cardMeaning">samar, ambigu</div>
+                <div class="mt8">
+                  <div class="example" id="cardExample"></div>
+                  <div class="example-id" id="cardExampleId"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fc-actions" id="fcActions">
+            <button class="btn btn-orange" id="btnUlangi">↺ Ulangi</button>
+            <button class="btn btn-green" id="btnHafal">✓ Hafal</button>
+          </div>
+
+          <div class="card done mt16" id="fcDone" hidden>
+            <div class="big">🎉</div>
+            <h2 class="section mt8">Sesi selesai!</h2>
+            <p class="muted small mt8" id="doneSummary">Kartu diulas</p>
+            <div class="fc-actions" style="grid-template-columns:1fr; margin-top:16px">
+              <button class="btn btn-orange btn-block" id="btnHardOnly" hidden>↺ Ulangi kartu sulit (<span id="hardCount">0</span>)</button>
+              <button class="btn btn-primary btn-block" id="btnRestart">Mulai sesi baru</button>
+            </div>
+          </div>
+        </div>
+
+        <div data-kpanel="list" hidden>
+          <p class="small muted mt16">Tanda <span class="tag green" style="font-size:12px; padding:2px 8px">✓ hafal</span> muncul otomatis setelah kamu menandai kartu.</p>
+          <div class="list mt12" id="kanjiList"></div>
+        </div>
+      </div>
+
+      <!-- ====== KOTOBA ====== -->
+      <div data-bpanel="kotoba" hidden>
+        <input type="search" class="search mt16" id="kataSearch" placeholder="Cari kosakata…" aria-label="Cari kosakata">
+        <div class="list mt12" id="kataList"></div>
+      </div>
+
+      <!-- ====== BUNPOU ====== -->
+      <div data-bpanel="bunpou" hidden>
+        <p class="small muted mt16">Ketuk pola untuk penjelasan + contoh dengan furigana. <span class="lvl n2">N2</span> inti, <span class="lvl n3">N3</span> pendukung.</p>
+        <div class="list mt12" id="polaList"></div>
+      </div>
+    </section>
+
+    <!-- ============ LATIHAN SOAL ============ -->
+    <section class="screen" data-screen="soal">
+      <div class="row between">
+        <span class="label">Paket campuran · N2</span>
+        <span class="small muted" id="qCounter">Soal 1</span>
+      </div>
+      <div class="bar mt8"><i id="qBar"></i></div>
+
+      <div id="quizBody">
+        <div class="card mt16">
+          <p class="q-sentence" id="qText"></p>
+          <div class="opts" id="qOpts"></div>
+        </div>
+        <div class="explain" id="qExplain" hidden>
+          <b>Pembahasan</b>
+          <p class="mt8" id="qExplainText"></p>
+          <button class="btn btn-primary btn-block mt12" id="qNext">Soal berikutnya</button>
+        </div>
+      </div>
+
+      <div class="card done mt16" id="quizDone" hidden>
+        <div class="big">📝</div>
+        <h2 class="section mt8" id="quizScoreTitle">Skor kamu</h2>
+        <p class="muted small mt8" id="quizScoreSub"></p>
+        <button class="btn btn-primary btn-block mt16" id="quizRetry">Ulangi paket soal</button>
+      </div>
+    </section>
+
+    <!-- ============ PROGRES ============ -->
+    <section class="screen" data-screen="progres">
+      <div class="seg" role="tablist" aria-label="Progres">
+        <button data-pseg="statistik" class="active" role="tab">Statistik</button>
+        <button data-pseg="tantangan" role="tab">Tantangan</button>
+      </div>
+
+      <div data-ppanel="statistik">
+        <div class="card mt16">
+          <div class="label">Rantai belajar</div>
+          <div style="font-size:28px; font-weight:700" class="mt8"><span id="streakBig">0</span> hari 🔥</div>
+          <div class="days" id="dayDots"></div>
+        </div>
+
+        <div class="card mt16">
+          <div class="label">Statistik penguasaan</div>
+          <div class="statbar">
+            <div class="top"><span>Kanji</span><b id="pctKanji">0%</b></div>
+            <div class="bar"><i id="barKanji"></i></div>
+          </div>
+          <div class="statbar">
+            <div class="top"><span>Kotoba</span><b id="pctKotoba">0%</b></div>
+            <div class="bar"><i id="barKotoba"></i></div>
+          </div>
+          <div class="statbar">
+            <div class="top"><span>Bunpou</span><b id="pctBunpou">0%</b></div>
+            <div class="bar"><i id="barBunpou"></i></div>
+          </div>
+          <div class="statbar">
+            <div class="top"><span>Latihan soal</span><b id="pctSoal">0%</b></div>
+            <div class="bar"><i id="barSoal"></i></div>
+          </div>
+        </div>
+
+        <div class="label mt24">Ringkasan minggu ini</div>
+        <div class="tiles mt12">
+          <div class="tile"><b id="weekCards">0</b><span>kartu diulas</span></div>
+          <div class="tile"><b id="weekSoal">0</b><span>soal dikerjakan</span></div>
+          <div class="tile"><b id="weekXp">0</b><span>XP didapat</span></div>
+        </div>
+
+        <div style="text-align:center" class="mt24">
+          <button class="reset-link" id="btnReset">Atur ulang semua data lokal</button>
+        </div>
+      </div>
+
+      <div data-ppanel="tantangan" hidden>
+        <div class="card tint mt16">
+          <div class="row between">
+            <div class="label">Tantangan harian</div>
+            <span class="tag" id="chReward">+50 XP</span>
+          </div>
+          <div class="mt8" style="font-weight:700; font-size:17px">Ulas 20 kartu hari ini</div>
+          <div class="row between mt8 small">
+            <span class="muted" id="chStatus">Belum selesai</span>
+            <b id="chCount">0/20</b>
+          </div>
+          <div class="bar orange mt8"><i id="chBar"></i></div>
+          <button class="btn btn-primary btn-block mt12" id="chGo" data-go="belajar" data-seg="kanji">Kerjakan sekarang</button>
+        </div>
+
+        <h2 class="section mt24">Lencana prestasi</h2>
+        <div class="grid2 mt12" id="badgeGrid"></div>
+
+        <h2 class="section mt24">Papan peringkat</h2>
+        <p class="small muted mt8">Peringkat latihan bersama teman belajarmu.</p>
+        <div class="lb mt12" id="leaderboard"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar" aria-label="Navigasi utama">
+    <button data-nav="home" class="active">
+      <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
+      Beranda
+    </button>
+    <button data-nav="belajar">
+      <svg viewBox="0 0 24 24"><path d="M12 6c-2-1.5-4.5-2-8-2v14c3.5 0 6 .5 8 2 2-1.5 4.5-2 8-2V4c-3.5 0-6 .5-8 2z"/><path d="M12 6v14"/></svg>
+      Belajar
+    </button>
+    <button data-nav="soal">
+      <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+      Soal
+    </button>
+    <button data-nav="progres">
+      <svg viewBox="0 0 24 24"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>
+      Progres
+    </button>
+  </nav>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Detail kata">
+  <div class="grab"></div>
+  <span class="tag">JLPT N2</span>
+  <div class="mt12" style="font-size:40px; font-weight:700; line-height:1.2" id="sheetWord"></div>
+  <div style="font-size:20px; color:var(--accent); font-weight:600" class="mt8" id="sheetReading"></div>
+  <div style="font-size:18px" class="mt8" id="sheetMeaning"></div>
+  <div class="label mt16">Contoh kalimat</div>
+  <div class="ex-box mt8">
+    <div id="sheetEx"></div>
+    <div class="example-id" id="sheetExId"></div>
+  </div>
+  <div class="ex-box mt8" id="sheetExBox2">
+    <div id="sheetEx2"></div>
+    <div class="example-id" id="sheetExId2"></div>
+  </div>
+  <button class="btn btn-outline btn-block mt16" id="sheetClose">Tutup</button>
+</div>
+
+<script>
+/* ================= DATA JLPT N2 ================= */
+const KANJI = [
+  {id:'k1', k:'曖昧', r:'あいまい', m:'samar, ambigu', ex:'彼の返事は曖昧だ。', exi:'Jawabannya samar.'},
+  {id:'k2', k:'複雑', r:'ふくざつ', m:'rumit, kompleks', ex:'この問題は複雑だ。', exi:'Masalah ini rumit.'},
+  {id:'k3', k:'妥協', r:'だきょう', m:'kompromi', ex:'妥協する余地はない。', exi:'Tidak ada ruang untuk kompromi.'},
+  {id:'k4', k:'貢献', r:'こうけん', m:'kontribusi', ex:'社会に貢献する。', exi:'Berkontribusi bagi masyarakat.'},
+  {id:'k5', k:'余裕', r:'よゆう', m:'kelonggaran', ex:'時間に余裕がある。', exi:'Ada kelonggaran waktu.'},
+  {id:'k6', k:'矛盾', r:'むじゅん', m:'kontradiksi', ex:'話が矛盾している。', exi:'Ceritanya kontradiktif.'},
+  {id:'k7', k:'把握', r:'はあく', m:'pemahaman', ex:'状況を把握する。', exi:'Memahami situasi.'},
+  {id:'k8', k:'犠牲', r:'ぎせい', m:'pengorbanan', ex:'犠牲を払う覚悟だ。', exi:'Siap berkorban.'},
+  {id:'k9', k:'詳細', r:'しょうさい', m:'rincian, detail', ex:'詳細はメールで送ります。', exi:'Rinciannya dikirim lewat email.'},
+  {id:'k10', k:'検討', r:'けんとう', m:'pertimbangan', ex:'提案を検討中です。', exi:'Sedang mempertimbangkan proposal.'},
+  {id:'k11', k:'徹底', r:'てってい', m:'menyeluruh', ex:'ルールを徹底する。', exi:'Menegakkan aturan secara menyeluruh.'},
+  {id:'k12', k:'緊張', r:'きんちょう', m:'tegang, gugup', ex:'面接で緊張した。', exi:'Gugup saat wawancara.'},
+  {id:'k13', k:'頻繁', r:'ひんぱん', m:'sering', ex:'彼は頻繁に出張する。', exi:'Dia sering perjalanan dinas.'},
+  {id:'k14', k:'誇張', r:'こちょう', m:'berlebih-lebihan', ex:'話を誇張する癖がある。', exi:'Punya kebiasaan melebih-lebihkan cerita.'},
+  {id:'k15', k:'詐欺', r:'さぎ', m:'penipuan', ex:'詐欺に遭わないよう注意する。', exi:'Hati-hati agar tidak tertipu.'},
+  {id:'k16', k:'脅威', r:'きょうい', m:'ancaman', ex:'環境への脅威となっている。', exi:'Menjadi ancaman bagi lingkungan.'},
+  {id:'k17', k:'迅速', r:'じんそく', m:'cepat', ex:'迅速な対応が求められる。', exi:'Dituntut tanggapan yang cepat.'},
+  {id:'k18', k:'勤勉', r:'きんべん', m:'rajin', ex:'彼は勤勉な学生だ。', exi:'Dia mahasiswa yang rajin.'},
+  {id:'k19', k:'謙虚', r:'けんきょ', m:'rendah hati', ex:'謙虚な態度が大切だ。', exi:'Sikap rendah hati itu penting.'},
+  {id:'k20', k:'傲慢', r:'ごうまん', m:'sombong', ex:'傲慢な振る舞いは嫌われる。', exi:'Perilaku sombong dibenci orang.'},
+  {id:'k21', k:'寛容', r:'かんよう', m:'toleran', ex:'寛容な心を持ちたい。', exi:'Ingin punya hati yang toleran.'},
+  {id:'k22', k:'敏感', r:'びんかん', m:'peka, sensitif', ex:'彼女は音に敏感だ。', exi:'Dia peka terhadap suara.'},
+  {id:'k23', k:'柔軟', r:'じゅうなん', m:'fleksibel', ex:'柔軟に対応する力が必要だ。', exi:'Perlu kemampuan menanggapi dengan fleksibel.'},
+  {id:'k24', k:'頑固', r:'がんこ', m:'keras kepala', ex:'祖父は頑固な人だ。', exi:'Kakek orang yang keras kepala.'},
+  {id:'k25', k:'残酷', r:'ざんこく', m:'kejam', ex:'残酷な現実を受け入れる。', exi:'Menerima kenyataan yang kejam.'},
+  {id:'k26', k:'節約', r:'せつやく', m:'hemat', ex:'電気代を節約する。', exi:'Menghemat biaya listrik.'},
+  {id:'k27', k:'浪費', r:'ろうひ', m:'boros', ex:'時間を浪費してはいけない。', exi:'Jangan membuang-buang waktu.'},
+  {id:'k28', k:'収穫', r:'しゅうかく', m:'panen', ex:'収穫の季節が来た。', exi:'Musim panen telah tiba.'},
+  {id:'k29', k:'推薦', r:'すいせん', m:'rekomendasi', ex:'先生に推薦してもらった。', exi:'Direkomendasikan oleh guru.'},
+  {id:'k30', k:'採用', r:'さいよう', m:'penerimaan', ex:'新しい制度を採用する。', exi:'Mengadopsi sistem baru.'},
+  {id:'k31', k:'解雇', r:'かいこ', m:'pemecatan', ex:'会社を解雇された。', exi:'Dipecat oleh perusahaan.'},
+  {id:'k32', k:'交渉', r:'こうしょう', m:'negosiasi', ex:'価格を交渉中だ。', exi:'Sedang menegosiasikan harga.'},
+  {id:'k33', k:'契約', r:'けいやく', m:'kontrak', ex:'契約を結んだ。', exi:'Sudah menandatangani kontrak.'},
+  {id:'k34', k:'違反', r:'いはん', m:'pelanggaran', ex:'規則に違反した。', exi:'Melanggar peraturan.'},
+  {id:'k35', k:'罰金', r:'ばっきん', m:'denda', ex:'罰金を払わされた。', exi:'Dihukum membayar denda.'},
+  {id:'k36', k:'保証', r:'ほしょう', m:'jaminan', ex:'品質を保証します。', exi:'Kami menjamin kualitas.'},
+  {id:'k37', k:'貯金', r:'ちょきん', m:'tabungan', ex:'毎月少しずつ貯金する。', exi:'Menabung sedikit demi sedikit tiap bulan.'},
+  {id:'k38', k:'投資', r:'とうし', m:'investasi', ex:'株に投資を始めた。', exi:'Mulai berinvestasi di saham.'},
+  {id:'k39', k:'噂', r:'うわさ', m:'rumor, gosip', ex:'噂があっという間に広まった。', exi:'Rumor menyebar dalam sekejap.'},
+  {id:'k40', k:'勧誘', r:'かんゆう', m:'ajakan, penawaran', ex:'しつこい勧誘を断った。', exi:'Menolak ajakan yang memaksa.'},
+  {id:'k41', k:'従事', r:'じゅうじ', m:'berkecimpung', ex:'彼は農業に従事している。', exi:'Dia berkecimpung di bidang pertanian.'},
+  {id:'k42', k:'展示', r:'てんじ', m:'pameran', ex:'新しい絵が展示されている。', exi:'Lukisan baru sedang dipamerkan.'},
+  {id:'k43', k:'診察', r:'しんさつ', m:'pemeriksaan dokter', ex:'医者に診察してもらった。', exi:'Diperiksa oleh dokter.'},
+  {id:'k44', k:'処方箋', r:'しょほうせん', m:'resep dokter', ex:'薬局に処方箋を出した。', exi:'Menyerahkan resep ke apotek.'},
+  {id:'k45', k:'回復', r:'かいふく', m:'pemulihan', ex:'病気は完全に回復した。', exi:'Penyakitnya pulih sepenuhnya.'},
+  {id:'k46', k:'予防', r:'よぼう', m:'pencegahan', ex:'病気の予防が大切だ。', exi:'Pencegahan penyakit itu penting.'},
+  {id:'k47', k:'感染', r:'かんせん', m:'infeksi', ex:'ウイルスに感染した。', exi:'Terinfeksi virus.'},
+  {id:'k48', k:'症状', r:'しょうじょう', m:'gejala', ex:'変な症状が現れた。', exi:'Muncul gejala aneh.'},
+  {id:'k49', k:'手術', r:'しゅじゅつ', m:'operasi', ex:'明日、手術を受ける。', exi:'Besok menjalani operasi.'},
+  {id:'k50', k:'麻酔', r:'ますい', m:'bius', ex:'麻酔が効いてきた。', exi:'Biusnya mulai bekerja.'},
+  {id:'k51', k:'遺伝', r:'いでん', m:'genetik, turunan', ex:'その病気は遺伝する。', exi:'Penyakit itu menurun.'},
+  {id:'k52', k:'分析', r:'ぶんせき', m:'analisis', ex:'データを詳しく分析する。', exi:'Menganalisis data secara rinci.'},
+  {id:'k53', k:'評価', r:'ひょうか', m:'evaluasi', ex:'彼の成果は高く評価された。', exi:'Hasil kerjanya dinilai tinggi.'},
+  {id:'k54', k:'診断', r:'しんだん', m:'diagnosis', ex:'医師が診断を下した。', exi:'Dokter menegakkan diagnosis.'},
+  {id:'k55', k:'治療', r:'ちりょう', m:'pengobatan', ex:'治療を続ける必要がある。', exi:'Perlu melanjutkan pengobatan.'},
+  {id:'k56', k:'設備', r:'せつび', m:'fasilitas', ex:'この施設は設備が整っている。', exi:'Fasilitas gedung ini lengkap.'},
+  {id:'k57', k:'維持', r:'いじ', m:'mempertahankan', ex:'健康を維持するために運動する。', exi:'Berolahraga untuk menjaga kesehatan.'},
+  {id:'k58', k:'改善', r:'かいぜん', m:'perbaikan', ex:'生活環境を改善した。', exi:'Memperbaiki lingkungan hidup.'},
+  {id:'k59', k:'悪化', r:'あっか', m:'memburuk', ex:'天候が悪化した。', exi:'Cuaca memburuk.'},
+  {id:'k60', k:'拡大', r:'かくだい', m:'perluasan', ex:'事業を海外へ拡大する。', exi:'Memperluas bisnis ke luar negeri.'},
+  {id:'k61', k:'縮小', r:'しゅくしょう', m:'penyusutan', ex:'生産規模を縮小した。', exi:'Skala produksi diperkecil.'},
+  {id:'k62', k:'供給', r:'きょうきゅう', m:'pasokan', ex:'この地域に水を供給する。', exi:'Memasok air ke daerah ini.'},
+  {id:'k63', k:'需要', r:'じゅよう', m:'permintaan', ex:'需要が急増している。', exi:'Permintaan meningkat pesat.'},
+  {id:'k64', k:'消費', r:'しょうひ', m:'konsumsi', ex:'電力の消費を減らす。', exi:'Mengurangi konsumsi listrik.'},
+  {id:'k65', k:'生産', r:'せいさん', m:'produksi', ex:'この地域は米を生産している。', exi:'Daerah ini memproduksi beras.'},
+  {id:'k66', k:'輸出', r:'ゆしゅつ', m:'ekspor', ex:'日本は車を輸出する。', exi:'Jepang mengekspor mobil.'},
+  {id:'k67', k:'輸入', r:'ゆにゅう', m:'impor', ex:'小麦は海外から輸入する。', exi:'Gandum diimpor dari luar negeri.'},
+  {id:'k68', k:'破産', r:'はさん', m:'bangkrut', ex:'その会社は破産した。', exi:'Perusahaan itu bangkrut.'},
+  {id:'k69', k:'繁栄', r:'はんえい', m:'kemakmuran', ex:'町が繁栄している。', exi:'Kota sedang makmur.'},
+  {id:'k70', k:'衰退', r:'すいたい', m:'kemunduran', ex:'産業が衰退してきた。', exi:'Industri mulai mundur.'},
+  {id:'k71', k:'義務', r:'ぎむ', m:'kewajiban', ex:'納税は国民の義務だ。', exi:'Membayar pajak adalah kewajiban warga negara.'},
+  {id:'k72', k:'権利', r:'けんり', m:'hak', ex:'意見を言う権利がある。', exi:'Ada hak untuk menyampaikan pendapat.'},
+  {id:'k73', k:'責任', r:'せきにん', m:'tanggung jawab', ex:'責任を取って辞任した。', exi:'Mundur untuk bertanggung jawab.'},
+  {id:'k74', k:'課題', r:'かだい', m:'tugas, PR', ex:'今日の課題を提出する。', exi:'Mengumpulkan tugas hari ini.'},
+  {id:'k75', k:'処分', r:'しょぶん', m:'hukuman', ex:'厳しい処分を受けた。', exi:'Menerima hukuman berat.'},
+  {id:'k76', k:'摩擦', r:'まさつ', m:'gesekan, konflik', ex:'意見の摩擦が起きた。', exi:'Terjadi gesekan pendapat.'},
+  {id:'k77', k:'絶望', r:'ぜつぼう', m:'putus asa', ex:'絶望に落ち込んだ。', exi:'Terpuruk dalam keputusasaan.'},
+  {id:'k78', k:'訂正', r:'ていせい', m:'koreksi', ex:'間違いをすぐ訂正した。', exi:'Kesalahan langsung dikoreksi.'},
+  {id:'k79', k:'履歴', r:'りれき', m:'riwayat', ex:'履歴書を書いた。', exi:'Menulis riwayat hidup (CV).'},
+  {id:'k80', k:'曇天', r:'どんてん', m:'cuaca mendung', ex:'曇天が一週間続いている。', exi:'Cuaca mendung berlanjut seminggu.'},
+  {id:'k81', k:'偶然', r:'ぐうぜん', m:'kebetulan', ex:'偶然友達に会った。', exi:'Kebetulan bertemu teman.'},
+  {id:'k82', k:'突然', r:'とつぜん', m:'tiba-tiba', ex:'突然の知らせに驚いた。', exi:'Kaget dengan kabar mendadak.'},
+  {id:'k83', k:'必然', r:'ひつぜん', m:'keniscayaan', ex:'この結果は必然だ。', exi:'Hasil ini adalah keniscayaan.'},
+  {id:'k84', k:'妥当', r:'だとう', m:'layak, masuk akal', ex:'妥当な価格だと思う。', exi:'Kurasa harganya layak.'},
+  {id:'k85', k:'漠然', r:'ばくぜん', m:'samar-samar', ex:'漠然とした不安がある。', exi:'Ada kecemasan yang samar.'},
+  {id:'k86', k:'明白', r:'めいはく', m:'jelas', ex:'それは明白な事実だ。', exi:'Itu fakta yang jelas.'},
+  {id:'k87', k:'鮮明', r:'せんめい', m:'jelas, tajam', ex:'その日のことを鮮明に覚えている。', exi:'Aku ingat hari itu dengan jelas.'},
+  {id:'k88', k:'顕著', r:'けんちょ', m:'menonjol', ex:'顕著な成果を上げた。', exi:'Mencapai hasil yang menonjol.'},
+  {id:'k89', k:'微妙', r:'びみょう', m:'tipis, sulit dijelaskan', ex:'二人の関係は微妙だ。', exi:'Hubungan keduanya rumit.'},
+  {id:'k90', k:'膨大', r:'ぼうだい', m:'sangat besar', ex:'膨大な量のデータだ。', exi:'Data dalam jumlah sangat besar.'},
+  {id:'k91', k:'些細', r:'ささい', m:'sepele', ex:'些細なことで喧嘩した。', exi:'Bertengkar karena hal sepele.'},
+  {id:'k92', k:'重大', r:'じゅうだい', m:'serius, penting', ex:'重大な発表がある。', exi:'Ada pengumuman penting.'},
+  {id:'k93', k:'緊急', r:'きんきゅう', m:'darurat', ex:'緊急の連絡が入った。', exi:'Masuk telepon darurat.'},
+  {id:'k94', k:'企画', r:'きかく', m:'rencana, proyek', ex:'新しい企画を立てる。', exi:'Menyusun rencana baru.'},
+  {id:'k95', k:'運営', r:'うんえい', m:'pengelolaan', ex:'この店を運営している。', exi:'Mengelola toko ini.'},
+  {id:'k96', k:'経営', r:'けいえい', m:'manajemen', ex:'父は会社を経営している。', exi:'Ayah mengelola perusahaan.'},
+  {id:'k97', k:'利益', r:'りえき', m:'keuntungan', ex:'利益が前年より上がった。', exi:'Keuntungan naik dari tahun lalu.'},
+  {id:'k98', k:'損失', r:'そんしつ', m:'kerugian', ex:'大きな損失を出した。', exi:'Menderita kerugian besar.'},
+  {id:'k99', k:'売上', r:'うりあげ', m:'hasil penjualan', ex:'今月の売上が伸びた。', exi:'Penjualan bulan ini meningkat.'},
+  {id:'k100', k:'宣伝', r:'せんでん', m:'promosi', ex:'新商品を宣伝する。', exi:'Mempromosikan produk baru.'},
+  {id:'k101', k:'広告', r:'こうこく', m:'iklan', ex:'雑誌に広告を出す。', exi:'Memasang iklan di majalah.'},
+  {id:'k102', k:'動機', r:'どうき', m:'motif', ex:'犯行の動機は不明だ。', exi:'Motif kejahatan belum jelas.'},
+  {id:'k103', k:'衝動', r:'しょうどう', m:'dorongan hati', ex:'衝動を抑えられなかった。', exi:'Tak bisa menahan dorongan hati.'},
+  {id:'k104', k:'忍耐', r:'にんたい', m:'kesabaran', ex:'忍耐が試されている。', exi:'Kesabaran sedang diuji.'},
+  {id:'k105', k:'挑戦', r:'ちょうせん', m:'tantangan', ex:'新しい挑戦を受け入れた。', exi:'Menerima tantangan baru.'},
+  {id:'k106', k:'達成', r:'たっせい', m:'pencapaian', ex:'目標を達成した。', exi:'Mencapai target.'},
+  {id:'k107', k:'挫折', r:'ざせつ', m:'kegagalan', ex:'挫折を乗り越えた。', exi:'Bangkit dari kegagalan.'},
+  {id:'k108', k:'克服', r:'こくふく', m:'mengatasi', ex:'弱点を克服する。', exi:'Mengatasi kelemahan.'},
+  {id:'k109', k:'警戒', r:'けいかい', m:'kewaspadaan', ex:'警戒を強めている。', exi:'Meningkatkan kewaspadaan.'},
+  {id:'k110', k:'回避', r:'かいひ', m:'penghindaran', ex:'危険を回避した。', exi:'Menghindari bahaya.'},
+  {id:'k111', k:'対策', r:'たいさく', m:'langkah, tindakan', ex:'対策を考える。', exi:'Memikirkan langkah penanggulangan.'},
+  {id:'k112', k:'防止', r:'ぼうし', m:'pencegahan', ex:'事故の防止に努める。', exi:'Berupaya mencegah kecelakaan.'},
+  {id:'k113', k:'発生', r:'はっせい', m:'kejadian, timbul', ex:'新しい問題が発生した。', exi:'Muncul masalah baru.'},
+  {id:'k114', k:'解決', r:'かいけつ', m:'penyelesaian', ex:'問題が解決した。', exi:'Masalahnya teratasi.'},
+  {id:'k115', k:'処理', r:'しょり', m:'pemrosesan', ex:'データを処理する。', exi:'Memproses data.'},
+  {id:'k116', k:'保存', r:'ほぞん', m:'penyimpanan', ex:'このボタンで保存できる。', exi:'Bisa disimpan dengan tombol ini.'},
+  {id:'k117', k:'削除', r:'さくじょ', m:'penghapusan', ex:'ファイルを削除した。', exi:'Menghapus file.'},
+  {id:'k118', k:'登録', r:'とうろく', m:'pendaftaran', ex:'会員に登録した。', exi:'Mendaftar sebagai anggota.'},
+  {id:'k119', k:'接続', r:'せつぞく', m:'koneksi', ex:'ネットに接続できない。', exi:'Tidak bisa tersambung ke internet.'},
+  {id:'k120', k:'検索', r:'けんさく', m:'pencarian', ex:'言葉の意味を検索する。', exi:'Mencari arti kata.'},
+];
+const KATA = [
+  {id:'w1', w:'励ます', r:'はげます', m:'menyemangati', ex:'落ち込んでいる友達を励ました。', exi:'Menyemangati teman yang sedang murung.', ex2:'先生は生徒を励ました。', exi2:'Guru menyemangati murid.'},
+  {id:'w2', w:'憧れる', r:'あこがれる', m:'mendambakan, mengidolakan', ex:'都会の生活に憧れる。', exi:'Mendambakan hidup di kota.', ex2:'彼女は歌手に憧れている。', exi2:'Dia mengidolakan penyanyi itu.'},
+  {id:'w3', w:'諦める', r:'あきらめる', m:'menyerah', ex:'夢を決して諦めない。', exi:'Tidak pernah menyerah pada mimpi.', ex2:'途中で諦めるのはもったいない。', exi2:'Sayang sekali menyerah di tengah jalan.'},
+  {id:'w4', w:'扱う', r:'あつかう', m:'menangani, menjual', ex:'この店は古い本を扱っている。', exi:'Toko ini menjual buku-buku lama.', ex2:'この機械の扱い方を教えてください。', exi2:'Tolong ajari cara menggunakan mesin ini.'},
+  {id:'w5', w:'疑う', r:'うたがう', m:'meragukan, mencurigai', ex:'彼の話を疑う人はいない。', exi:'Tidak ada yang meragukan ceritanya.', ex2:'警察は彼を疑っている。', exi2:'Polisi mencurigainya.'},
+  {id:'w6', w:'裏切る', r:'うらぎる', m:'mengkhianati', ex:'仲間を裏切ってはいけない。', exi:'Jangan mengkhianati teman.', ex2:'信頼を裏切られた。', exi2:'Kepercayaanku dikhianati.'},
+  {id:'w7', w:'断る', r:'ことわる', m:'menolak', ex:'丁寧に誘いを断った。', exi:'Menolak ajakan dengan sopan.', ex2:'無理な注文は断った方がいい。', exi2:'Permintaan yang mustahil sebaiknya ditolak.'},
+  {id:'w8', w:'好む', r:'このむ', m:'menyukai', ex:'彼は静かな場所を好む。', exi:'Dia menyukai tempat yang tenang.', ex2:'若い世代は辛いものを好む。', exi2:'Generasi muda menyukai makanan pedas.'},
+  {id:'w9', w:'避ける', r:'さける', m:'menghindari', ex:'朝の人混みを避けて歩く。', exi:'Berjalan menghindari keramaian pagi.', ex2:'その話題を避けた。', exi2:'Menghindari topik itu.'},
+  {id:'w10', w:'支える', r:'ささえる', m:'menopang, mendukung', ex:'家族を支えるために働く。', exi:'Bekerja untuk menopang keluarga.', ex2:'柱が屋根を支えている。', exi2:'Pilar menopang atap.'},
+  {id:'w11', w:'沈む', r:'しずむ', m:'tenggelam', ex:'夕日が海に沈む。', exi:'Matahari sore tenggelam ke laut.', ex2:'気分が沈む。', exi2:'Suasana hati merosot (murung).'},
+  {id:'w12', w:'過ごす', r:'すごす', m:'menghabiskan waktu', ex:'週末は家で過ごす。', exi:'Menghabiskan akhir pekan di rumah.', ex2:'夏休みを実家で過ごした。', exi2:'Menghabiskan liburan musim panas di kampung halaman.'},
+  {id:'w13', w:'試みる', r:'こころみる', m:'mencoba', ex:'新しい方法を試みる。', exi:'Mencoba cara yang baru.', ex2:'彼の試みは失敗に終わった。', exi2:'Upayanya berakhir gagal.'},
+  {id:'w14', w:'構う', r:'かまう', m:'mempedulikan', ex:'誰も私のことなど構わない。', exi:'Tidak ada yang mempedulikanku.', ex2:'忙しいので構っていられない。', exi2:'Sedang sibuk, jadi tidak bisa mengurus.'},
+  {id:'w15', w:'傷つく', r:'きずつく', m:'terluka', ex:'言葉で心が傷ついた。', exi:'Hatinya terluka karena kata-kata.', ex2:'彼の言動に傷ついた。', exi2:'Terluka oleh ucapannya.'},
+  {id:'w16', w:'腐る', r:'くさる', m:'membusuk', ex:'野菜が腐ってしまった。', exi:'Sayurnya membusuk.', ex2:'牛乳が腐る前に飲んで。', exi2:'Minum susunya sebelum basi.'},
+  {id:'w17', w:'焦がす', r:'こがす', m:'menghanguskan', ex:'ご飯を焦がしてしまった。', exi:'Nasinya gosong.', ex2:'鍋を焦がしてしまった。', exi2:'Pancinya hangus.'},
+  {id:'w18', w:'盗む', r:'ぬすむ', m:'mencuri', ex:'駅で財布を盗まれた。', exi:'Dompetnya dicuri di stasiun.', ex2:'自転車が盗まれた。', exi2:'Sepedanya dicuri.'},
+  {id:'w19', w:'騙す', r:'だます', m:'menipu', ex:'甘い話で客を騙す。', exi:'Menipu pelanggan dengan bujukan.', ex2:'嘘をついて人を騙すな。', exi2:'Jangan menipu orang dengan bohong.'},
+  {id:'w20', w:'我慢する', r:'がまんする', m:'menahan diri', ex:'痛みを我慢して走った。', exi:'Menahan sakit sambil terus berlari.', ex2:'笑いを我慢した。', exi2:'Menahan tawa.'},
+  {id:'w21', w:'的確', r:'てきかく', m:'tepat, akurat', ex:'的確な答えに皆が納得した。', exi:'Semua setuju dengan jawaban yang tepat.', ex2:'的確な指示に従った。', exi2:'Mengikuti instruksi yang tepat.'},
+  {id:'w22', w:'慎重', r:'しんちょう', m:'hati-hati, waspada', ex:'慎重に計画を立てる。', exi:'Menyusun rencana dengan hati-hati.', ex2:'慎重な態度で臨む。', exi2:'Menghadapinya dengan sikap hati-hati.'},
+  {id:'w23', w:'素直', r:'すなお', m:'jujur, tulus', ex:'素直に謝る勇気が必要だ。', exi:'Perlu keberanian untuk minta maaf dengan tulus.', ex2:'素直な性格が好きだ。', exi2:'Suka dengan sifatnya yang jujur.'},
+  {id:'w24', w:'見事', r:'みごと', m:'indah, luar biasa', ex:'見事な桜が咲いた。', exi:'Sakura yang indah bermekaran.', ex2:'見事な逆転勝ちだった。', exi2:'Kemenangan comeback yang luar biasa.'},
+  {id:'w25', w:'派手', r:'はで', m:'mencolok', ex:'派手な服は苦手だ。', exi:'Tidak suka pakaian mencolok.', ex2:'派手な生活は控えたい。', exi2:'Ingin menghindari gaya hidup mewah.'},
+  {id:'w26', w:'地味', r:'じみ', m:'sederhana, tidak mencolok', ex:'地味な作業が実は大切だ。', exi:'Pekerjaan sederhana sebenarnya penting.', ex2:'地味な生活を送っている。', exi2:'Menjalani hidup sederhana.'},
+  {id:'w27', w:'真剣', r:'しんけん', m:'serius', ex:'真剣に将来を考える。', exi:'Memikirkan masa depan dengan serius.', ex2:'真剣な表情で話した。', exi2:'Berbicara dengan ekspresi serius.'},
+  {id:'w28', w:'無謀', r:'むぼう', m:'gegabah', ex:'無謀な挑戦は失敗しやすい。', exi:'Tantangan yang gegabah mudah gagal.', ex2:'単独での登山は無謀だ。', exi2:'Mendaki sendirian itu gegabah.'},
+  {id:'w29', w:'適切', r:'てきせつ', m:'sesuai, tepat', ex:'適切な助言をありがとう。', exi:'Terima kasih atas nasihat yang tepat.', ex2:'適切な時期に始めよう。', exi2:'Mulailah di waktu yang tepat.'},
+  {id:'w30', w:'生意気', r:'なまいき', m:'kurang ajar', ex:'生意気な口をきくな。', exi:'Jangan bicara kurang ajar.', ex2:'生意気な後輩だ。', exi2:'Junior yang kurang ajar.'},
+  {id:'w31', w:'紛らわしい', r:'まぎらわしい', m:'membingungkan', ex:'紛らわしい標識が多い。', exi:'Banyak rambu yang membingungkan.', ex2:'紛らわしい表現は避ける。', exi2:'Menghindari ungkapan yang membingungkan.'},
+  {id:'w32', w:'慌ただしい', r:'あわただしい', m:'tergesa-gesa, sibuk', ex:'慌ただしい朝を過ごした。', exi:'Melewati pagi yang sibuk.', ex2:'慌ただしい一日だった。', exi2:'Hari yang sibuk sekali.'},
+  {id:'w33', w:'情けない', r:'なさけない', m:'menyedihkan', ex:'情けない失敗をしてしまった。', exi:'Melakukan kegagalan yang menyedihkan.', ex2:'情けない姿を見せてしまった。', exi2:'Terlanjur menunjukkan sisi menyedihkan.'},
+  {id:'w34', w:'悔しい', r:'くやしい', m:'kesal, tak terima', ex:'負けてとても悔しい。', exi:'Kesal sekali karena kalah.', ex2:'悔しい気持ちを力に変える。', exi2:'Mengubah rasa kesal jadi kekuatan.'},
+  {id:'w35', w:'恐ろしい', r:'おそろしい', m:'mengerikan', ex:'恐ろしい事件が起きた。', exi:'Terjadi peristiwa yang mengerikan.', ex2:'恐ろしい夢を見た。', exi2:'Bermimpi mengerikan.'},
+  {id:'w36', w:'騒がしい', r:'さわがしい', m:'bising, ramai', ex:'騒がしい街で育った。', exi:'Tumbuh di kota yang bising.', ex2:'隣の部屋が騒がしい。', exi2:'Kamar sebelah berisik.'},
+  {id:'w37', w:'実現', r:'じつげん', m:'perwujudan', ex:'夢の実現に近づいた。', exi:'Semakin dekat mewujudkan mimpi.', ex2:'計画の実現に向けて動く。', exi2:'Bergerak menuju terwujudnya rencana.'},
+  {id:'w38', w:'影響', r:'えいきょう', m:'pengaruh', ex:'影響を受けやすい年頃だ。', exi:'Usia yang mudah terpengaruh.', ex2:'影響が広く及んだ。', exi2:'Pengaruhnya meluas.'},
+  {id:'w39', w:'迷子', r:'まいご', m:'orang tersesat', ex:'迷子のお知らせが流れた。', exi:'Ada pengumuman anak hilang.', ex2:'迷子の子供を交番に届けた。', exi2:'Mengantar anak tersesat ke pos polisi.'},
+  {id:'w40', w:'癖', r:'くせ', m:'kebiasaan', ex:'爪を噛む癖がある。', exi:'Punya kebiasaan menggigit kuku.', ex2:'悪い癖を直したい。', exi2:'Ingin memperbaiki kebiasaan buruk.'},
+  {id:'w41', w:'誤解', r:'ごかい', m:'kesalahpahaman', ex:'誤解を解くのに時間がかかった。', exi:'Butuh waktu untuk meluruskan kesalahpahaman.', ex2:'彼女の言葉を誤解した。', exi2:'Salah paham pada kata-katanya.'},
+  {id:'w42', w:'徹夜', r:'てつや', m:'begadang', ex:'徹夜でレポートを仕上げた。', exi:'Begadang menyelesaikan laporan.', ex2:'徹夜で仕事を片付けた。', exi2:'Menyelesaikan pekerjaan dengan begadang.'},
+  {id:'w43', w:'反省', r:'はんせい', m:'introspeksi', ex:'自分の失敗を反省する。', exi:'Merenungkan kegagalan sendiri.', ex2:'反省の色が見えない。', exi2:'Tidak terlihat tanda menyesal.'},
+  {id:'w44', w:'工夫', r:'くふう', m:'kreasi, akal', ex:'収納に工夫が必要だ。', exi:'Penyimpanan perlu kreasi akal.', ex2:'工夫を凝らした料理だ。', exi2:'Masakan yang penuh kreasi.'},
+  {id:'w45', w:'勢い', r:'いきおい', m:'momentum, tenaga', ex:'勢いよくドアを開けた。', exi:'Membuka pintu dengan penuh tenaga.', ex2:'勢い余って転んだ。', exi2:'Terjatuh karena terlalu bertenaga.'},
+  {id:'w46', w:'遠慮', r:'えんりょ', m:'sungkan', ex:'遠慮なく質問してください。', exi:'Silakan bertanya tanpa sungkan.', ex2:'遠慮せずに食べてください。', exi2:'Silakan makan tanpa sungkan.'},
+  {id:'w47', w:'余計', r:'よけい', m:'berlebihan', ex:'余計な心配をしてしまう。', exi:'Suka khawatir berlebihan.', ex2:'余計なことを言ってしまった。', exi2:'Terlanjur mengatakan hal yang tidak perlu.'},
+  {id:'w48', w:'勘違い', r:'かんちがい', m:'salah paham', ex:'完全に勘違いしていた。', exi:'Benar-benar salah paham.', ex2:'日にちを勘違いしていた。', exi2:'Salah mengira tanggal.'},
+  {id:'w49', w:'面倒', r:'めんどう', m:'merepotkan', ex:'面倒な手続きが続く。', exi:'Prosedur yang merepotkan terus berlanjut.', ex2:'面倒な問題が起きた。', exi2:'Muncul masalah yang merepotkan.'},
+  {id:'w50', w:'皮肉', r:'ひにく', m:'sindiran, ironi', ex:'皮肉な結果になった。', exi:'Hasilnya jadi ironis.', ex2:'皮肉を言うのはやめなさい。', exi2:'Jangan menyindir.'},
+  {id:'w51', w:'思い切り', r:'おもいきり', m:'sepuasnya', ex:'休日は思い切り遊ぶ。', exi:'Di hari libur main sepuasnya.', ex2:'思い切り泣いた。', exi2:'Menangis sepuas-puasnya.'},
+  {id:'w52', w:'一旦', r:'いったん', m:'untuk sementara', ex:'一旦、作業を中止する。', exi:'Menghentikan pekerjaan untuk sementara.', ex2:'一旦家に帰る。', exi2:'Pulang dulu untuk sementara.'},
+  {id:'w53', w:'かえって', r:'かえって', m:'malah, justru', ex:'安いものはかえって高くつく。', exi:'Barang murah malah jadi mahal.', ex2:'薬がかえって体に悪い。', exi2:'Obatnya malah buruk bagi tubuh.'},
+  {id:'w54', w:'必ずしも', r:'かならずしも', m:'tidak selalu', ex:'正解は必ずしも一つではない。', exi:'Jawaban benar tidak selalu satu.', ex2:'高いものが必ずしも良いとは限らない。', exi2:'Barang mahal tidak selalu bagus.'},
+  {id:'w55', w:'めったに', r:'めったに', m:'jarang sekali', ex:'めったに雪が降らない地方だ。', exi:'Daerah yang jarang turun salju.', ex2:'めったに怒らない人だ。', exi2:'Orang yang jarang sekali marah.'},
+  {id:'w56', w:'あらかじめ', r:'あらかじめ', m:'sebelumnya', ex:'あらかじめ予約しておく。', exi:'Memesan lebih dulu.', ex2:'あらかじめ準備しておく。', exi2:'Mempersiapkan sebelumnya.'},
+  {id:'w57', w:'徐々に', r:'じょじょに', m:'perlahan-lahan', ex:'病気が徐々に回復した。', exi:'Penyakitnya perlahan pulih.', ex2:'徐々に慣れてきた。', exi2:'Perlahan mulai terbiasa.'},
+  {id:'w58', w:'たまたま', r:'たまたま', m:'kebetulan', ex:'たまたま友人に出会った。', exi:'Kebetulan bertemu teman.', ex2:'たまたま席が空いていた。', exi2:'Kebetulan ada kursi kosong.'},
+  {id:'w59', w:'うっかり', r:'うっかり', m:'tanpa sengaja', ex:'うっかり秘密を話してしまった。', exi:'Tak sengaja membocorkan rahasia.', ex2:'うっかり財布を忘れた。', exi2:'Tak sengaja lupa dompet.'},
+  {id:'w60', w:'ぐっすり', r:'ぐっすり', m:'nyenyak', ex:'昨夜はぐっすり眠れた。', exi:'Semalam tidur nyenyak.', ex2:'赤ちゃんがぐっすり眠っている。', exi2:'Bayinya tidur nyenyak.'},
+  {id:'w61', w:'名誉', r:'めいよ', m:'kehormatan', ex:'家族の名誉を守る。', exi:'Melindungi kehormatan keluarga.', ex2:'それは名誉なことだ。', exi2:'Itu adalah hal yang terhormat.'},
+  {id:'w62', w:'誇り', r:'ほこり', m:'kebanggaan', ex:'仕事に誇りを持っている。', exi:'Bangga dengan pekerjaannya.', ex2:'彼は家族の誇りだ。', exi2:'Dia kebanggaan keluarga.'},
+  {id:'w63', w:'怠る', r:'おこたる', m:'mengabaikan', ex:'準備を怠った。', exi:'Mengabaikan persiapan.', ex2:'勉強を怠るな。', exi2:'Jangan mengabaikan belajar.'},
+  {id:'w64', w:'叱る', r:'しかる', m:'memarahi', ex:'子供を叱る母親。', exi:'Ibu yang memarahi anaknya.', ex2:'彼は叱られて泣いた。', exi2:'Dia menangis karena dimarahi.'},
+  {id:'w65', w:'促す', r:'うながす', m:'mendesak, mendorong', ex:'早めの返事を促した。', exi:'Mendesak balasan lebih cepat.', ex2:'注意を促す標識だ。', exi2:'Rambu yang mengingatkan.'},
+  {id:'w66', w:'伴う', r:'ともなう', m:'menyertai', ex:'責任が伴う仕事だ。', exi:'Pekerjaan yang disertai tanggung jawab.', ex2:'痛みを伴う治療だ。', exi2:'Pengobatan yang disertai rasa sakit.'},
+  {id:'w67', w:'携わる', r:'たずさわる', m:'terlibat', ex:'教育に携わっている。', exi:'Terlibat di bidang pendidikan.', ex2:'開発に携わる技術者。', exi2:'Teknisi yang terlibat dalam pengembangan.'},
+  {id:'w68', w:'費やす', r:'ついやす', m:'menghabiskan', ex:'休日を読書に費やした。', exi:'Menghabiskan liburan untuk membaca.', ex2:'多くの時間を費やした。', exi2:'Menghabiskan banyak waktu.'},
+  {id:'w69', w:'省く', r:'はぶく', m:'menghilangkan, melewati', ex:'無駄な手順を省いた。', exi:'Menghilangkan langkah yang tidak perlu.', ex2:'説明は省かせてもらう。', exi2:'Penjelasannya saya lewati.'},
+  {id:'w70', w:'含む', r:'ふくむ', m:'mengandung, termasuk', ex:'税を含む値段だ。', exi:'Harga sudah termasuk pajak.', ex2:'水分を多く含む果物。', exi2:'Buah yang banyak mengandung air.'},
+  {id:'w71', w:'及ぶ', r:'およぶ', m:'mencapai', ex:'影響が全国に及んだ。', exi:'Pengaruhnya mencapai seluruh negeri.', ex2:'被害は広い範囲に及ぶ。', exi2:'Kerugian mencapai area luas.'},
+  {id:'w72', w:'基づく', r:'もとづく', m:'berdasarkan', ex:'事実に基づく話だ。', exi:'Cerita berdasarkan fakta.', ex2:'経験に基づいて判断した。', exi2:'Menilai berdasarkan pengalaman.'},
+  {id:'w73', w:'応じる', r:'おうじる', m:'menanggapi', ex:'質問に丁寧に応じた。', exi:'Menanggapi pertanyaan dengan sopan.', ex2:'要望に応じる。', exi2:'Menanggapi permintaan.'},
+  {id:'w74', w:'限る', r:'かぎる', m:'membatasi', ex:'人数を限って開催する。', exi:'Mengadakan dengan membatasi jumlah orang.', ex2:'時間を限って話す。', exi2:'Berbicara dengan waktu dibatasi.'},
+  {id:'w75', w:'焦る', r:'あせる', m:'panik, gelisah', ex:'焦って失敗した。', exi:'Gagal karena panik.', ex2:'焦る必要はない。', exi2:'Tidak perlu panik.'},
+  {id:'w76', w:'誇る', r:'ほこる', m:'membanggakan', ex:'息子の成績を誇る。', exi:'Membanggakan prestasi anaknya.', ex2:'彼は才能を誇っている。', exi2:'Dia bangga dengan bakatnya.'},
+  {id:'w77', w:'訴える', r:'うったえる', m:'menggugat, mengeluhkan', ex:'会社を訴えた。', exi:'Menggugat perusahaan.', ex2:'痛みを訴える患者。', exi2:'Pasien yang mengeluhkan rasa sakit.'},
+  {id:'w78', w:'掲げる', r:'かかげる', m:'mengemukakan, mengangkat', ex:'新しい方針を掲げた。', exi:'Mengemukakan kebijakan baru.', ex2:'スローガンを掲げる。', exi2:'Mengangkat slogan.'},
+  {id:'w79', w:'絶つ', r:'たつ', m:'memutuskan', ex:'彼とは連絡を絶っている。', exi:'Saya memutus kontak dengannya.', ex2:'電源を絶った。', exi2:'Memutus aliran listrik.'},
+  {id:'w80', w:'貫く', r:'つらぬく', m:'menembus, mempertahankan', ex:'信念を貫いた。', exi:'Mempertahankan keyakinan sampai akhir.', ex2:'弾丸が壁を貫いた。', exi2:'Peluru menembus tembok.'},
+  {id:'w81', w:'遂げる', r:'とげる', m:'mencapai', ex:'目的を遂げた。', exi:'Mencapai tujuan.', ex2:'改革を遂げた会社。', exi2:'Perusahaan yang berhasil melakukan reformasi.'},
+  {id:'w82', w:'果たす', r:'はたす', m:'memenuhi', ex:'役目を果たした。', exi:'Memenuhi tugasnya.', ex2:'約束を果たす。', exi2:'Menepati janji.'},
+  {id:'w83', w:'臨む', r:'のぞむ', m:'menghadapi', ex:'試験に臨む。', exi:'Menghadapi ujian.', ex2:'新しい気持ちで仕事に臨む。', exi2:'Menghadapi pekerjaan dengan semangat baru.'},
+  {id:'w84', w:'挑む', r:'いどむ', m:'menantang', ex:'強い相手に挑んだ。', exi:'Menantang lawan yang kuat.', ex2:'記録に挑む。', exi2:'Menantang rekor.'},
+  {id:'w85', w:'陥る', r:'おちいる', m:'terjerumus', ex:'罠に陥った。', exi:'Terjerumus ke jebakan.', ex2:'借金生活に陥る。', exi2:'Terjerumus ke kehidupan penuh utang.'},
+  {id:'w86', w:'妨げる', r:'さまたげる', m:'menghalangi', ex:'成長を妨げる要因だ。', exi:'Faktor yang menghalangi pertumbuhan.', ex2:'睡眠を妨げる騒音。', exi2:'Kebisingan yang mengganggu tidur.'},
+  {id:'w87', w:'促進', r:'そくしん', m:'percepatan', ex:'販売を促進する。', exi:'Mempercepat penjualan.', ex2:'発展の促進を図る。', exi2:'Berupaya mempercepat perkembangan.'},
+  {id:'w88', w:'抑制', r:'よくせい', m:'penahanan', ex:'感情を抑制した。', exi:'Menahan emosi.', ex2:'値上げを抑制する。', exi2:'Menahan kenaikan harga.'},
+  {id:'w89', w:'没頭', r:'ぼっとう', m:'keasyikan', ex:'読書に没頭した。', exi:'Asyik membaca.', ex2:'研究に没頭している。', exi2:'Tenggelam dalam penelitian.'},
+  {id:'w90', w:'熱中', r:'ねっちゅう', m:'kecanduan, sangat asyik', ex:'ゲームに熱中している。', exi:'Kecanduan game.', ex2:'勉強に熱中する生徒。', exi2:'Murid yang asyik belajar.'},
+  {id:'w91', w:'没収', r:'ぼっしゅう', m:'penyitaan', ex:'携帯を没収された。', exi:'HP-nya disita.', ex2:'禁制品を没収する。', exi2:'Menyita barang terlarang.'},
+  {id:'w92', w:'強制', r:'きょうせい', m:'paksaan', ex:'参加を強制された。', exi:'Dipaksa ikut serta.', ex2:'労働を強制するな。', exi2:'Jangan memaksakan kerja.'},
+  {id:'w93', w:'禁止', r:'きんし', m:'larangan', ex:'ここは駐車禁止だ。', exi:'Di sini dilarang parkir.', ex2:'喫煙は禁止されている。', exi2:'Merokok dilarang.'},
+  {id:'w94', w:'許可', r:'きょか', m:'izin', ex:'撮影の許可を得た。', exi:'Mendapat izin memotret.', ex2:'許可なく入るな。', exi2:'Jangan masuk tanpa izin.'},
+  {id:'w95', w:'承認', r:'しょうにん', m:'persetujuan', ex:'計画が承認された。', exi:'Rencananya disetujui.', ex2:'承認を待っている。', exi2:'Sedang menunggu persetujuan.'},
+  {id:'w96', w:'拒否', r:'きょひ', m:'penolakan', ex:'要求を拒否した。', exi:'Menolak permintaan.', ex2:'拒否の返事が来た。', exi2:'Datang jawaban penolakan.'},
+  {id:'w97', w:'解釈', r:'かいしゃく', m:'interpretasi', ex:'文を正しく解釈する。', exi:'Menginterpretasikan kalimat dengan benar.', ex2:'解釈が人によって違う。', exi2:'Interpretasinya berbeda tiap orang.'},
+  {id:'w98', w:'推測', r:'すいそく', m:'dugaan', ex:'その推測は当たった。', exi:'Dugaannya tepat.', ex2:'推測で話すな。', exi2:'Jangan bicara berdasarkan dugaan.'},
+  {id:'w99', w:'断定', r:'だんてい', m:'penegasan', ex:'原因は断定できない。', exi:'Penyebabnya belum bisa dipastikan.', ex2:'断定を避けた方がいい。', exi2:'Sebaiknya menghindari penegasan.'},
+  {id:'w100', w:'検証', r:'けんしょう', m:'verifikasi', ex:'仮説を検証する。', exi:'Memverifikasi hipotesis.', ex2:'検証の結果、正しかった。', exi2:'Hasil verifikasinya benar.'},
+];
+const POLA = [
+  {id:'p1', lv:'N2', p:'〜ざるを得ない', m:'terpaksa harus ~', d:'Menyatakan tidak ada pilihan lain selain melakukan hal itu.',
+   ex:'<ruby>雨<rt>あめ</rt></ruby>なので、<ruby>試合<rt>しあい</rt></ruby>は<ruby>中止<rt>ちゅうし</rt></ruby>せざるを<ruby>得<rt>え</rt></ruby>ない。', exi:'Karena hujan, pertandingan terpaksa dibatalkan.',
+   ex2:'<ruby>締<rt>し</rt></ruby>め<ruby>切<rt>き</rt></ruby>りがあるので、<ruby>徹夜<rt>てつや</rt></ruby>せざるを<ruby>得<rt>え</rt></ruby>ない。', exi2:'Karena ada tenggat, terpaksa begadang.'},
+  {id:'p2', lv:'N2', p:'〜に違いない', m:'pasti ~, sudah pasti ~', d:'Menyatakan kesimpulan dengan keyakinan kuat berdasarkan bukti.',
+   ex:'<ruby>彼<rt>かれ</rt></ruby>は<ruby>疲<rt>つか</rt></ruby>れているに<ruby>違<rt>ちが</rt></ruby>いない。', exi:'Dia pasti sedang lelah.',
+   ex2:'この<ruby>店<rt>みせ</rt></ruby>は<ruby>人気<rt>にんき</rt></ruby>があるに<ruby>違<rt>ちが</rt></ruby>いない。', exi2:'Toko ini pasti populer.'},
+  {id:'p3', lv:'N2', p:'〜わけではない', m:'bukan berarti ~', d:'Menyangkal sebagian, bukan keseluruhan pernyataan.',
+   ex:'<ruby>嫌<rt>きら</rt></ruby>いなわけではない。', exi:'Bukan berarti benci.',
+   ex2:'<ruby>全<rt>すべ</rt></ruby>てが<ruby>悪<rt>わる</rt></ruby>いわけではない。', exi2:'Bukan berarti semuanya buruk.'},
+  {id:'p4', lv:'N2', p:'〜ばかりか', m:'bukan hanya ~, bahkan ~', d:'Menambahkan informasi yang lebih jauh dari yang pertama.',
+   ex:'<ruby>彼<rt>かれ</rt></ruby>は<ruby>日本語<rt>にほんご</rt></ruby>ばかりか、<ruby>中国語<rt>ちゅうごくご</rt></ruby>も<ruby>話<rt>はな</rt></ruby>せる。', exi:'Dia bukan hanya bisa bahasa Jepang, bahkan Mandarin juga.',
+   ex2:'<ruby>彼<rt>かれ</rt></ruby>は<ruby>頭<rt>あたま</rt></ruby>がいいばかりか、<ruby>性格<rt>せいかく</rt></ruby>もいい。', exi2:'Dia bukan hanya pintar, sifatnya juga baik.'},
+  {id:'p5', lv:'N2', p:'〜ことか', m:'alangkah ~nya', d:'Menyatakan perasaan yang sangat mendalam.',
+   ex:'<ruby>合格<rt>ごうかく</rt></ruby>したとき、どれほど<ruby>嬉<rt>うれ</rt></ruby>しかったことか。', exi:'Alangkah senangnya saat lulus.',
+   ex2:'どんなに<ruby>怖<rt>こわ</rt></ruby>かったことか。', exi2:'Alangkah menakutkannya waktu itu.'},
+  {id:'p6', lv:'N2', p:'〜わけがない', m:'tidak mungkin ~', d:'Menyatakan penyangkalan kuat bahwa sesuatu mustahil terjadi.',
+   ex:'あの<ruby>人<rt>ひと</rt></ruby>が<ruby>犯人<rt>はんにん</rt></ruby>なわけがない。', exi:'Tidak mungkin dia pelakunya.',
+   ex2:'<ruby>一日<rt>いちにち</rt></ruby>で<ruby>終<rt>お</rt></ruby>わるわけがない。', exi2:'Mustahil selesai dalam sehari.'},
+  {id:'p7', lv:'N2', p:'〜わりに', m:'meskipun ~ (untuk ukurannya)', d:'Menyatakan hasil yang tidak sebanding dengan perkiraan umum.',
+   ex:'<ruby>年<rt>とし</rt></ruby>のわりに<ruby>若<rt>わか</rt></ruby>く<ruby>見<rt>み</rt></ruby>える。', exi:'Terlihat muda untuk usianya.',
+   ex2:'<ruby>値段<rt>ねだん</rt></ruby>のわりに<ruby>美味<rt>おい</rt></ruby>しい。', exi2:'Enak untuk harganya.'},
+  {id:'p8', lv:'N2', p:'〜に比べて', m:'dibandingkan ~', d:'Membandingkan dua hal secara langsung.',
+   ex:'<ruby>去年<rt>きょねん</rt></ruby>に<ruby>比<rt>くら</rt></ruby>べて<ruby>暑<rt>あつ</rt></ruby>い。', exi:'Lebih panas dibanding tahun lalu.',
+   ex2:'<ruby>都会<rt>とかい</rt></ruby>に<ruby>比<rt>くら</rt></ruby>べて<ruby>田舎<rt>いなか</rt></ruby>は<ruby>静<rt>しず</rt></ruby>かだ。', exi2:'Dibanding kota, desa lebih tenang.'},
+  {id:'p9', lv:'N2', p:'〜に対して', m:'terhadap ~', d:'Menunjukkan arah sikap atau tindakan kepada sesuatu.',
+   ex:'<ruby>先生<rt>せんせい</rt></ruby>に<ruby>対<rt>たい</rt></ruby>して<ruby>失礼<rt>しつれい</rt></ruby>なことを<ruby>言<rt>い</rt></ruby>うな。', exi:'Jangan berkata tidak sopan kepada guru.',
+   ex2:'<ruby>質問<rt>しつもん</rt></ruby>に<ruby>対<rt>たい</rt></ruby>して<ruby>丁寧<rt>ていねい</rt></ruby>に<ruby>答<rt>こた</rt></ruby>えた。', exi2:'Menjawab pertanyaan dengan sopan.'},
+  {id:'p10', lv:'N2', p:'〜にとって', m:'bagi ~', d:'Menyatakan sudut pandang atau posisi seseorang.',
+   ex:'<ruby>私<rt>わたし</rt></ruby>にとって<ruby>家族<rt>かぞく</rt></ruby>が<ruby>一番大切<rt>いちばんたいせつ</rt></ruby>だ。', exi:'Bagiku, keluarga yang paling penting.',
+   ex2:'<ruby>子供<rt>こども</rt></ruby>にとって<ruby>良<rt>よ</rt></ruby>い<ruby>環境<rt>かんきょう</rt></ruby>だ。', exi2:'Lingkungan yang baik bagi anak.'},
+  {id:'p11', lv:'N2', p:'〜によって', m:'oleh / tergantung ~', d:'Menyatakan pelaku pasif, cara, atau sesuatu yang berbeda-beda.',
+   ex:'この<ruby>橋<rt>はし</rt></ruby>は<ruby>昔<rt>むかし</rt></ruby>の<ruby>職人<rt>しょくにん</rt></ruby>によって<ruby>建<rt>た</rt></ruby>てられた。', exi:'Jembatan ini dibangun oleh pengrajin zaman dulu.',
+   ex2:'<ruby>人<rt>ひと</rt></ruby>によって<ruby>意見<rt>いけん</rt></ruby>が<ruby>違<rt>ちが</rt></ruby>う。', exi2:'Pendapat berbeda tergantung orangnya.'},
+  {id:'p12', lv:'N2', p:'〜によると', m:'menurut ~', d:'Menyatakan sumber informasi.',
+   ex:'<ruby>天気予報<rt>てんきよほう</rt></ruby>によると<ruby>明日<rt>あした</rt></ruby>は<ruby>雨<rt>あめ</rt></ruby>だ。', exi:'Menurut ramalan cuaca besok hujan.',
+   ex2:'<ruby>噂<rt>うわさ</rt></ruby>によると<ruby>彼<rt>かれ</rt></ruby>は<ruby>辞<rt>や</rt></ruby>めるらしい。', exi2:'Menurut kabar, dia akan berhenti.'},
+  {id:'p13', lv:'N2', p:'〜おかげで', m:'berkat ~', d:'Menyatakan sebab dengan hasil yang positif.',
+   ex:'<ruby>先生<rt>せんせい</rt></ruby>のおかげで<ruby>合格<rt>ごうかく</rt></ruby>した。', exi:'Berkat guru saya jadi lulus.',
+   ex2:'<ruby>薬<rt>くすり</rt></ruby>のおかげで<ruby>元気<rt>げんき</rt></ruby>になった。', exi2:'Berkat obat jadi sehat kembali.'},
+  {id:'p14', lv:'N2', p:'〜せいで', m:'gara-gara ~', d:'Menyatakan sebab dengan hasil yang negatif.',
+   ex:'<ruby>寝不足<rt>ねぶそく</rt></ruby>のせいで<ruby>頭<rt>あたま</rt></ruby>が<ruby>痛<rt>いた</rt></ruby>い。', exi:'Kepalaku sakit gara-gara kurang tidur.',
+   ex2:'<ruby>雨<rt>あめ</rt></ruby>のせいで<ruby>試合<rt>しあい</rt></ruby>が<ruby>中止<rt>ちゅうし</rt></ruby>になった。', exi2:'Pertandingan dibatalkan gara-gara hujan.'},
+  {id:'p15', lv:'N2', p:'〜おそれがある', m:'dikhawatirkan ~', d:'Menyatakan kemungkinan sesuatu yang buruk akan terjadi.',
+   ex:'この<ruby>病気<rt>びょうき</rt></ruby>は<ruby>広<rt>ひろ</rt></ruby>がるおそれがある。', exi:'Penyakit ini dikhawatirkan menyebar.',
+   ex2:'<ruby>橋<rt>はし</rt></ruby>が<ruby>壊<rt>こわ</rt></ruby>れるおそれがある。', exi2:'Jembatan itu dikhawatirkan runtuh.'},
+  {id:'p16', lv:'N2', p:'〜かねない', m:'bisa saja ~ (buruk)', d:'Menyatakan ada kemungkinan hasil yang tidak diinginkan.',
+   ex:'その<ruby>発言<rt>はつげん</rt></ruby>は<ruby>誤解<rt>ごかい</rt></ruby>を<ruby>招<rt>まね</rt></ruby>きかねない。', exi:'Pernyataan itu bisa saja mengundang salah paham.',
+   ex2:'<ruby>事故<rt>じこ</rt></ruby>になりかねない<ruby>運転<rt>うんてん</rt></ruby>だ。', exi2:'Cara mengemudi yang bisa menyebabkan kecelakaan.'},
+  {id:'p17', lv:'N2', p:'〜かねる', m:'tidak dapat ~ (sopan)', d:'Menolak dengan sopan karena tidak mampu melakukan sesuatu.',
+   ex:'そのご<ruby>要望<rt>ようぼう</rt></ruby>には<ruby>応<rt>おう</rt></ruby>じかねます。', exi:'Kami tidak dapat memenuhi permintaan itu.',
+   ex2:'<ruby>今<rt>いま</rt></ruby>すぐの<ruby>返事<rt>へんじ</rt></ruby>はしかねます。', exi2:'Saya tidak dapat menjawab sekarang.'},
+  {id:'p18', lv:'N2', p:'〜がたい', m:'sulit untuk ~', d:'Menyatakan sesuatu secara mental sulit dilakukan.',
+   ex:'<ruby>彼<rt>かれ</rt></ruby>の<ruby>気持<rt>きも</rt></ruby>ちは<ruby>理解<rt>りかい</rt></ruby>しがたい。', exi:'Perasaannya sulit dipahami.',
+   ex2:'<ruby>信<rt>しん</rt></ruby>じがたい<ruby>話<rt>はなし</rt></ruby>だ。', exi2:'Cerita yang sulit dipercaya.'},
+  {id:'p19', lv:'N2', p:'〜がちだ', m:'cenderung ~', d:'Menyatakan kecenderungan yang sering terjadi.',
+   ex:'<ruby>最近<rt>さいきん</rt></ruby>、<ruby>忘<rt>わす</rt></ruby>れがちだ。', exi:'Akhir-akhir ini jadi pelupa.',
+   ex2:'<ruby>彼<rt>かれ</rt></ruby>は<ruby>遅刻<rt>ちこく</rt></ruby>しがちだ。', exi2:'Dia cenderung sering terlambat.'},
+  {id:'p20', lv:'N2', p:'〜っぽい', m:'seperti / mudah ~', d:'Menyatakan kesan atau sifat yang melekat.',
+   ex:'この<ruby>料理<rt>りょうり</rt></ruby>は<ruby>水<rt>みず</rt></ruby>っぽい。', exi:'Masakan ini encer sekali.',
+   ex2:'<ruby>彼<rt>かれ</rt></ruby>は<ruby>怒<rt>おこ</rt></ruby>りっぽい。', exi2:'Dia gampang marah.'},
+  {id:'p21', lv:'N2', p:'〜ずつ', m:'masing-masing ~', d:'Menyatakan pembagian yang sama rata.',
+   ex:'<ruby>一人<rt>ひとり</rt></ruby><ruby>二<rt>ふた</rt></ruby>つずつ<ruby>取<rt>と</rt></ruby>ってください。', exi:'Silakan ambil masing-masing dua.',
+   ex2:'<ruby>少<rt>すこ</rt></ruby>しずつ<ruby>進歩<rt>しんぽ</rt></ruby>している。', exi2:'Maju sedikit demi sedikit.'},
+  {id:'p22', lv:'N2', p:'〜ば〜ほど', m:'semakin ~ semakin ~', d:'Suatu perubahan sebanding dengan perubahan lainnya.',
+   ex:'<ruby>練習<rt>れんしゅう</rt></ruby>すればするほど<ruby>上手<rt>じょうず</rt></ruby>になる。', exi:'Semakin berlatih semakin mahir.',
+   ex2:'<ruby>読<rt>よ</rt></ruby>めば<ruby>読<rt>よ</rt></ruby>むほど<ruby>面白<rt>おもしろ</rt></ruby>い。', exi2:'Semakin dibaca semakin menarik.'},
+  {id:'p23', lv:'N2', p:'〜ほど', m:'sampai-sampai ~', d:'Menyatakan tingkat yang ekstrem.',
+   ex:'<ruby>嬉<rt>うれ</rt></ruby>しくて<ruby>泣<rt>な</rt></ruby>けるほどだ。', exi:'Saking senangnya sampai bisa menangis.',
+   ex2:'<ruby>疲<rt>つか</rt></ruby>れて<ruby>歩<rt>ある</rt></ruby>けないほどだ。', exi2:'Lelah sampai tidak bisa berjalan.'},
+  {id:'p24', lv:'N2', p:'〜くらい', m:'setidaknya / sampai ~', d:'Menyatakan tingkat; kadang bernada meremehkan.',
+   ex:'<ruby>挨拶<rt>あいさつ</rt></ruby>くらいは<ruby>日本語<rt>にほんご</rt></ruby>でできる。', exi:'Setidaknya bisa menyapa dalam bahasa Jepang.',
+   ex2:'<ruby>痛<rt>いた</rt></ruby>くて<ruby>声<rt>こえ</rt></ruby>も<ruby>出<rt>で</rt></ruby>ないくらいだ。', exi2:'Sakit sampai tidak bisa bersuara.'},
+  {id:'p25', lv:'N2', p:'〜ものの', m:'meskipun ~', d:'Sesuatu terjadi tetapi hasilnya tidak sesuai harapan.',
+   ex:'<ruby>買<rt>か</rt></ruby>ったものの、<ruby>使<rt>つか</rt></ruby>っていない。', exi:'Sudah dibeli, tetapi tidak dipakai.',
+   ex2:'<ruby>来<rt>き</rt></ruby>たものの、すぐ<ruby>帰<rt>かえ</rt></ruby>った。', exi2:'Meskipun datang, langsung pulang.'},
+  {id:'p26', lv:'N2', p:'〜ものだ', m:'memang begitulah ~', d:'Menyatakan kebenaran umum atau kebiasaan masa lalu.',
+   ex:'<ruby>人<rt>ひと</rt></ruby>は<ruby>誰<rt>だれ</rt></ruby>でも<ruby>失敗<rt>しっぱい</rt></ruby>するものだ。', exi:'Manusia memang wajar berbuat salah.',
+   ex2:'<ruby>子供<rt>こども</rt></ruby>の<ruby>頃<rt>ころ</rt></ruby>はよく<ruby>遊<rt>あそ</rt></ruby>んだものだ。', exi2:'Waktu kecil dulu sering bermain.'},
+  {id:'p27', lv:'N2', p:'〜ことだ', m:'sebaiknya ~', d:'Memberi nasihat dengan lembut.',
+   ex:'<ruby>疲<rt>つか</rt></ruby>れたら<ruby>休<rt>やす</rt></ruby>むことだ。', exi:'Kalau lelah, sebaiknya istirahat.',
+   ex2:'<ruby>詳<rt>くわ</rt></ruby>しくは<ruby>先生<rt>せんせい</rt></ruby>に<ruby>聞<rt>き</rt></ruby>くことだ。', exi2:'Untuk detail, sebaiknya tanya guru.'},
+  {id:'p28', lv:'N2', p:'〜ことに', m:'yang ~-nya (perasaan)', d:'Mengawali kalimat dengan perasaan pembicara.',
+   ex:'<ruby>驚<rt>おどろ</rt></ruby>いたことに、<ruby>彼<rt>かれ</rt></ruby>は<ruby>合格<rt>ごうかく</rt></ruby>した。', exi:'Yang mengejutkan, dia lulus.',
+   ex2:'<ruby>残念<rt>ざんねん</rt></ruby>なことに、<ruby>行<rt>い</rt></ruby>けなくなった。', exi2:'Sayangnya, jadi tidak bisa pergi.'},
+  {id:'p29', lv:'N2', p:'〜に加えて', m:'di samping ~', d:'Menambahkan hal yang sejenis.',
+   ex:'<ruby>雨<rt>あめ</rt></ruby>に<ruby>加<rt>くわ</rt></ruby>えて<ruby>風<rt>かぜ</rt></ruby>も<ruby>強<rt>つよ</rt></ruby>い。', exi:'Di samping hujan, anginnya juga kencang.',
+   ex2:'<ruby>給料<rt>きゅうりょう</rt></ruby>に<ruby>加<rt>くわ</rt></ruby>えて<ruby>賞与<rt>しょうよ</rt></ruby>も<ruby>出<rt>で</rt></ruby>る。', exi2:'Selain gaji, ada bonus juga.'},
+  {id:'p30', lv:'N2', p:'〜に反して', m:'bertentangan dengan ~', d:'Hasil berlawanan dengan harapan atau aturan.',
+   ex:'<ruby>予想<rt>よそう</rt></ruby>に<ruby>反<rt>はん</rt></ruby>して<ruby>試合<rt>しあい</rt></ruby>に<ruby>勝<rt>か</rt></ruby>った。', exi:'Bertentangan dengan dugaan, malah menang.',
+   ex2:'<ruby>規則<rt>きそく</rt></ruby>に<ruby>反<rt>はん</rt></ruby>する<ruby>行為<rt>こうい</rt></ruby>だ。', exi2:'Perbuatan yang melanggar aturan.'},
+  {id:'p31', lv:'N2', p:'〜にわたって', m:'selama / meliputi ~', d:'Menyatakan jangkauan waktu atau ruang yang luas.',
+   ex:'<ruby>調査<rt>ちょうさ</rt></ruby>は<ruby>五年<rt>ごねん</rt></ruby>にわたって<ruby>行<rt>おこな</rt></ruby>われた。', exi:'Penelitian dilakukan selama lima tahun.',
+   ex2:'<ruby>全国<rt>ぜんこく</rt></ruby>にわたって<ruby>放送<rt>ほうそう</rt></ruby>された。', exi2:'Disiarkan meliputi seluruh negeri.'},
+  {id:'p32', lv:'N2', p:'〜をはじめ', m:'~ dan lainnya', d:'Mengambil contoh utama dari banyak hal.',
+   ex:'<ruby>東京<rt>とうきょう</rt></ruby>をはじめ<ruby>大都市<rt>だいとし</rt></ruby>で<ruby>開催<rt>かいさい</rt></ruby>された。', exi:'Diadakan di kota-kota besar termasuk Tokyo.',
+   ex2:'<ruby>彼<rt>かれ</rt></ruby>をはじめ<ruby>皆<rt>みな</rt></ruby>が<ruby>賛成<rt>さんせい</rt></ruby>した。', exi2:'Semua setuju, termasuk dia.'},
+  {id:'p33', lv:'N2', p:'〜をめぐって', m:'seputar ~', d:'Berpusat pada suatu masalah atau tema.',
+   ex:'<ruby>法案<rt>ほうあん</rt></ruby>をめぐって<ruby>議論<rt>ぎろん</rt></ruby>が<ruby>続<rt>つづ</rt></ruby>く。', exi:'Perdebatan berlanjut seputar rancangan undang-undang.',
+   ex2:'<ruby>遺産<rt>いさん</rt></ruby>をめぐって<ruby>争<rt>あらそ</rt></ruby>いになった。', exi2:'Terjadi perselisihan seputar warisan.'},
+  {id:'p34', lv:'N2', p:'〜にもかかわらず', m:'meskipun demikian ~', d:'Keadaan berlawanan dengan yang diharapkan.',
+   ex:'<ruby>雨<rt>あめ</rt></ruby>にもかかわらず<ruby>出<rt>で</rt></ruby>かけた。', exi:'Meskipun hujan, tetap pergi.',
+   ex2:'<ruby>注意<rt>ちゅうい</rt></ruby>したにもかかわらず<ruby>失敗<rt>しっぱい</rt></ruby>した。', exi2:'Padahal sudah diperingatkan, tetap gagal.'},
+  {id:'p35', lv:'N2', p:'〜にすぎない', m:'tidak lebih dari ~', d:'Menyatakan sesuatu itu kecil atau sederhana saja.',
+   ex:'<ruby>彼<rt>かれ</rt></ruby>は<ruby>新人<rt>しんじん</rt></ruby>にすぎない。', exi:'Dia tidak lebih dari sekadar anak baru.',
+   ex2:'<ruby>噂<rt>うわさ</rt></ruby>にすぎない<ruby>話<rt>はなし</rt></ruby>だ。', exi2:'Cerita yang hanya rumor.'},
+  {id:'p36', lv:'N2', p:'〜にほかならない', m:'tidak lain adalah ~', d:'Menegaskan identitas atau sebab yang sebenarnya.',
+   ex:'<ruby>彼<rt>かれ</rt></ruby>の<ruby>成功<rt>せいこう</rt></ruby>は<ruby>努力<rt>どりょく</rt></ruby>の<ruby>結果<rt>けっか</rt></ruby>にほかならない。', exi:'Kesuksesannya tidak lain adalah hasil kerja keras.',
+   ex2:'これこそ<ruby>私<rt>わたし</rt></ruby>の<ruby>夢<rt>ゆめ</rt></ruby>にほかならない。', exi2:'Inilah yang tidak lain adalah mimpiku.'},
+  {id:'p37', lv:'N2', p:'〜べきだ', m:'seharusnya ~', d:'Menyatakan kewajiban atau pendapat dengan tegas.',
+   ex:'<ruby>約束<rt>やくそく</rt></ruby>は<ruby>守<rt>まも</rt></ruby>るべきだ。', exi:'Janji seharusnya ditepati.',
+   ex2:'もっと<ruby>早<rt>はや</rt></ruby>く<ruby>言<rt>い</rt></ruby>うべきだった。', exi2:'Seharusnya bilang lebih awal.'},
+  {id:'p38', lv:'N2', p:'〜<ruby>最中<rt>さいちゅう</rt></ruby>に', m:'di tengah-tengah ~', d:'Sesuatu terjadi saat sedang melakukan hal lain.',
+   ex:'<ruby>食事<rt>しょくじ</rt></ruby>の<ruby>最中<rt>さいちゅう</rt></ruby>に<ruby>電話<rt>でんわ</rt></ruby>が<ruby>鳴<rt>な</rt></ruby>った。', exi:'Di tengah makan, telepon berbunyi.',
+   ex2:'<ruby>会議<rt>かいぎ</rt></ruby>の<ruby>最中<rt>さいちゅう</rt></ruby>に<ruby>寝<rt>ね</rt></ruby>てしまった。', exi2:'Tertidur di tengah rapat.'},
+  {id:'p39', lv:'N2', p:'〜<ruby>次第<rt>しだい</rt></ruby>', m:'segera setelah ~', d:'Begitu sesuatu selesai, langsung melakukan hal berikutnya.',
+   ex:'<ruby>分<rt>わ</rt></ruby>かり<ruby>次第<rt>しだい</rt></ruby>、<ruby>連絡<rt>れんらく</rt></ruby>します。', exi:'Begitu tahu, akan saya kabari.',
+   ex2:'<ruby>到着<rt>とうちゃく</rt></ruby><ruby>次第<rt>しだい</rt></ruby>、<ruby>電話<rt>でんわ</rt></ruby>してください。', exi2:'Segera telepon setelah tiba.'},
+  {id:'p40', lv:'N2', p:'〜からには', m:'karena sudah ~', d:'Karena sudah terlanjur, ada konsekuensi yang harus dijalani.',
+   ex:'やるからには<ruby>最後<rt>さいご</rt></ruby>までやる。', exi:'Karena sudah memulai, selesaikan sampai akhir.',
+   ex2:'<ruby>約束<rt>やくそく</rt></ruby>したからには<ruby>守<rt>まも</rt></ruby>るべきだ。', exi2:'Karena sudah berjanji, harus ditepati.'},
+  {id:'p41', lv:'N3', p:'〜うちに', m:'selagi ~', d:'Melakukan sesuatu sebelum keadaan berubah.',
+   ex:'<ruby>暗<rt>くら</rt></ruby>くならないうちに<ruby>帰<rt>かえ</rt></ruby>ろう。', exi:'Pulang selagi belum gelap.',
+   ex2:'<ruby>温<rt>あたた</rt></ruby>かいうちに<ruby>食<rt>た</rt></ruby>べてください。', exi2:'Dimakan selagi hangat.'},
+  {id:'p42', lv:'N3', p:'〜たびに', m:'setiap kali ~', d:'Menyatakan sesuatu terjadi setiap kali suatu aksi dilakukan.',
+   ex:'<ruby>彼<rt>かれ</rt></ruby>に<ruby>会<rt>あ</rt></ruby>うたびに<ruby>驚<rt>おどろ</rt></ruby>かされる。', exi:'Setiap kali bertemu dia, selalu dibuat kaget.',
+   ex2:'この<ruby>写真<rt>しゃしん</rt></ruby>を<ruby>見<rt>み</rt></ruby>るたびに<ruby>思<rt>おも</rt></ruby>い<ruby>出<rt>だ</rt></ruby>す。', exi2:'Setiap melihat foto ini jadi teringat.'},
+  {id:'p43', lv:'N3', p:'〜<ruby>代<rt>か</rt></ruby>わりに', m:'sebagai ganti ~', d:'Menggantikan hal atau orang lain.',
+   ex:'<ruby>私<rt>わたし</rt></ruby>の<ruby>代<rt>か</rt></ruby>わりに<ruby>彼<rt>かれ</rt></ruby>が<ruby>行<rt>い</rt></ruby>った。', exi:'Dia pergi sebagai gantiku.',
+   ex2:'バスの<ruby>代<rt>か</rt></ruby>わりに<ruby>歩<rt>ある</rt></ruby>いた。', exi2:'Berjalan sebagai ganti naik bus.'},
+  {id:'p44', lv:'N3', p:'〜おきに', m:'setiap selang ~', d:'Menyatakan interval waktu atau jarak yang teratur.',
+   ex:'<ruby>三日<rt>みっか</rt></ruby>おきに<ruby>来<rt>く</rt></ruby>る。', exi:'Datang setiap selang tiga hari.',
+   ex2:'<ruby>一行<rt>いちぎょう</rt></ruby>おきに<ruby>書<rt>か</rt></ruby>く。', exi2:'Menulis setiap selang satu baris.'},
+  {id:'p45', lv:'N3', p:'〜に<ruby>決<rt>き</rt></ruby>まっている', m:'pasti ~, sudah jelas ~', d:'Menyatakan keyakinan kuat, sering dengan nada santai.',
+   ex:'そんなのは<ruby>嘘<rt>うそ</rt></ruby>に<ruby>決<rt>き</rt></ruby>まっている。', exi:'Itu pasti bohong.',
+   ex2:'<ruby>彼<rt>かれ</rt></ruby>が<ruby>勝<rt>か</rt></ruby>つに<ruby>決<rt>き</rt></ruby>まっている。', exi2:'Dia pasti menang.'},
+  {id:'p46', lv:'N3', p:'〜わけだ', m:'jadi / berarti ~', d:'Menyatakan kesimpulan atau pemahaman dari suatu keadaan.',
+   ex:'つまり<ruby>間<rt>ま</rt></ruby>に<ruby>合<rt>あ</rt></ruby>わないわけだ。', exi:'Jadi berarti tidak sempat.',
+   ex2:'だから<ruby>高<rt>たか</rt></ruby>いわけだ。', exi2:'Pantas saja mahal.'},
+  {id:'p47', lv:'N3', p:'〜わけにはいかない', m:'tidak bisa ~ (meski ingin)', d:'Tidak dapat melakukan karena alasan sosial atau keadaan.',
+   ex:'<ruby>明日<rt>あした</rt></ruby><ruby>試験<rt>しけん</rt></ruby>なので、<ruby>遊<rt>あそ</rt></ruby>んでいるわけにはいかない。', exi:'Besok ujian, jadi tidak bisa main-main.',
+   ex2:'この<ruby>仕事<rt>しごと</rt></ruby>は<ruby>断<rt>ことわ</rt></ruby>るわけにはいかない。', exi2:'Pekerjaan ini tidak bisa ditolak.'},
+  {id:'p48', lv:'N3', p:'〜ずにはいられない', m:'tidak tahan untuk tidak ~', d:'Perasaan atau aksi yang sulit ditahan.',
+   ex:'<ruby>笑<rt>わら</rt></ruby>わずにはいられなかった。', exi:'Tidak tahan untuk tidak tertawa.',
+   ex2:'<ruby>感動<rt>かんどう</rt></ruby>せずにはいられない。', exi2:'Tidak bisa tidak terharu.'},
+  {id:'p49', lv:'N3', p:'〜づらい', m:'sulit untuk ~', d:'Menyatakan sesuatu sulit dilakukan secara fisik atau psikologis.',
+   ex:'この<ruby>靴<rt>くつ</rt></ruby>は<ruby>歩<rt>ある</rt></ruby>きづらい。', exi:'Sepatu ini susah dipakai jalan.',
+   ex2:'<ruby>言<rt>い</rt></ruby>いづらいことだが…', exi2:'Ini sulit diucapkan, tapi…'},
+  {id:'p50', lv:'N3', p:'〜かのようだ', m:'seolah-olah ~', d:'Bertingkah atau terlihat seperti hal yang sebenarnya tidak demikian.',
+   ex:'<ruby>彼<rt>かれ</rt></ruby>は<ruby>何<rt>なに</rt></ruby>も<ruby>知<rt>し</rt></ruby>らないかのように<ruby>話<rt>はな</rt></ruby>した。', exi:'Dia bicara seolah tidak tahu apa-apa.',
+   ex2:'<ruby>彼<rt>かれ</rt></ruby>は<ruby>全<rt>すべ</rt></ruby>てを<ruby>知<rt>し</rt></ruby>っているかのように<ruby>話<rt>はな</rt></ruby>す。', exi2:'Dia bicara seolah tahu segalanya.'},
+  {id:'p51', lv:'N3', p:'〜といっても', m:'walaupun dibilang ~', d:'Memberi batasan pada pernyataan sebelumnya.',
+   ex:'<ruby>休<rt>やす</rt></ruby>みといっても<ruby>仕事<rt>しごと</rt></ruby>がある。', exi:'Walaupun dibilang libur, tetap ada kerjaan.',
+   ex2:'<ruby>日本語<rt>にほんご</rt></ruby>ができるといっても<ruby>日常会話<rt>にちじょうかいわ</rt></ruby>だけだ。', exi2:'Walau dibilang bisa bahasa Jepang, hanya percakapan sehari-hari.'},
+  {id:'p52', lv:'N3', p:'〜から〜にかけて', m:'dari ~ sampai ~', d:'Rentang waktu atau tempat yang tidak pasti batasnya.',
+   ex:'<ruby>昨夜<rt>ゆうべ</rt></ruby>から<ruby>今朝<rt>けさ</rt></ruby>にかけて<ruby>雨<rt>あめ</rt></ruby>が<ruby>降<rt>ふ</rt></ruby>った。', exi:'Hujan turun dari semalam sampai pagi ini.',
+   ex2:'<ruby>春<rt>はる</rt></ruby>から<ruby>夏<rt>なつ</rt></ruby>にかけて<ruby>咲<rt>さ</rt></ruby>く<ruby>花<rt>はな</rt></ruby>だ。', exi2:'Bunga yang mekar dari musim semi sampai panas.'},
+  {id:'p53', lv:'N3', p:'〜をきっかけに', m:'berawal dari ~', d:'Kejadian yang menjadi pemicu perubahan.',
+   ex:'<ruby>引<rt>ひ</rt></ruby>っ<ruby>越<rt>こ</rt></ruby>しをきっかけに<ruby>日本語<rt>にほんご</rt></ruby>を<ruby>習<rt>なら</rt></ruby>った。', exi:'Berawal dari pindahan, aku belajar bahasa Jepang.',
+   ex2:'その<ruby>本<rt>ほん</rt></ruby>をきっかけに<ruby>興味<rt>きょうみ</rt></ruby>を<ruby>持<rt>も</rt></ruby>った。', exi2:'Berawal dari buku itu jadi tertarik.'},
+  {id:'p54', lv:'N3', p:'〜を<ruby>通<rt>つう</rt></ruby>じて', m:'melalui ~', d:'Sarana atau perantara untuk melakukan sesuatu.',
+   ex:'<ruby>友達<rt>ともだち</rt></ruby>を<ruby>通<rt>つう</rt></ruby>じて<ruby>知<rt>し</rt></ruby>り<ruby>合<rt>あ</rt></ruby>った。', exi:'Kenalan melalui teman.',
+   ex2:'インターネットを<ruby>通<rt>つう</rt></ruby>じて<ruby>学<rt>まな</rt></ruby>ぶ。', exi2:'Belajar melalui internet.'},
+  {id:'p55', lv:'N3', p:'〜に<ruby>沿<rt>そ</rt></ruby>って', m:'sesuai dengan ~', d:'Mengikuti garis, rencana, atau pedoman.',
+   ex:'<ruby>計画<rt>けいかく</rt></ruby>に<ruby>沿<rt>そ</rt></ruby>って<ruby>進<rt>すす</rt></ruby>める。', exi:'Maju sesuai rencana.',
+   ex2:'<ruby>川<rt>かわ</rt></ruby>に<ruby>沿<rt>そ</rt></ruby>って<ruby>歩<rt>ある</rt></ruby>く。', exi2:'Berjalan menyusuri sungai.'},
+  {id:'p56', lv:'N3', p:'〜に<ruby>伴<rt>ともな</rt></ruby>って', m:'seiring dengan ~', d:'Suatu perubahan terjadi bersamaan dengan perubahan lain.',
+   ex:'<ruby>人口<rt>じんこう</rt></ruby>の<ruby>増加<rt>ぞうか</rt></ruby>に<ruby>伴<rt>ともな</rt></ruby>って<ruby>家<rt>いえ</rt></ruby>が<ruby>足<rt>た</rt></ruby>りない。', exi:'Seiring pertambahan penduduk, rumah jadi kurang.',
+   ex2:'<ruby>技術<rt>ぎじゅつ</rt></ruby>の<ruby>発展<rt>はってん</rt></ruby>に<ruby>伴<rt>ともな</rt></ruby>って<ruby>生活<rt>せいかつ</rt></ruby>が<ruby>変<rt>か</rt></ruby>わった。', exi2:'Seiring perkembangan teknologi, hidup berubah.'},
+  {id:'p57', lv:'N3', p:'〜に<ruby>応<rt>おう</rt></ruby>じて', m:'sesuai dengan ~', d:'Menyesuaikan tindakan dengan keadaan atau permintaan.',
+   ex:'<ruby>能力<rt>のうりょく</rt></ruby>に<ruby>応<rt>おう</rt></ruby>じて<ruby>給料<rt>きゅうりょう</rt></ruby>が<ruby>決<rt>き</rt></ruby>まる。', exi:'Gaji ditentukan sesuai kemampuan.',
+   ex2:'<ruby>要望<rt>ようぼう</rt></ruby>に<ruby>応<rt>おう</rt></ruby>じて<ruby>対応<rt>たいおう</rt></ruby>する。', exi2:'Menangani sesuai permintaan.'},
+  {id:'p58', lv:'N3', p:'〜に<ruby>関<rt>かん</rt></ruby>して', m:'mengenai ~', d:'Menyatakan topik pembicaraan.',
+   ex:'その<ruby>問題<rt>もんだい</rt></ruby>に<ruby>関<rt>かん</rt></ruby>して<ruby>説明<rt>せつめい</rt></ruby>する。', exi:'Menjelaskan mengenai masalah itu.',
+   ex2:'<ruby>詳細<rt>しょうさい</rt></ruby>に<ruby>関<rt>かん</rt></ruby>しては<ruby>後<rt>あと</rt></ruby>で<ruby>話<rt>はな</rt></ruby>す。', exi2:'Mengenai rinciannya dibicarakan nanti.'},
+  {id:'p59', lv:'N3', p:'〜をもとに', m:'berdasarkan ~', d:'Menjadikan sesuatu sebagai dasar pembuatan.',
+   ex:'<ruby>実話<rt>じつわ</rt></ruby>をもとにした<ruby>映画<rt>えいが</rt></ruby>だ。', exi:'Film berdasarkan kisah nyata.',
+   ex2:'<ruby>経験<rt>けいけん</rt></ruby>をもとに<ruby>判断<rt>はんだん</rt></ruby>した。', exi2:'Menilai berdasarkan pengalaman.'},
+  {id:'p60', lv:'N3', p:'〜たとたん', m:'begitu ~ langsung ~', d:'Sesuatu terjadi tepat setelah aksi pertama.',
+   ex:'<ruby>立<rt>た</rt></ruby>ち<ruby>上<rt>あ</rt></ruby>がったとたんに<ruby>倒<rt>たお</rt></ruby>れた。', exi:'Begitu berdiri langsung jatuh.',
+   ex2:'<ruby>家<rt>いえ</rt></ruby>に<ruby>着<rt>つ</rt></ruby>いたとたんに<ruby>雨<rt>あめ</rt></ruby>が<ruby>降<rt>ふ</rt></ruby>った。', exi2:'Begitu sampai rumah langsung hujan.'},
+];
+const QUIZ = [
+  {q:'この仕事は給料が安い____、やりがいがある。', opts:['だけに','わりに','ばかりに','くせに'], a:1,
+   d:'「〜わりに」dipakai saat kenyataan tidak sebanding dengan perkiraan umum. Artinya: meskipun gajinya kecil, pekerjaan ini memuaskan.'},
+  {q:'彼の説明はいつも「曖昧」だ。Bacaan yang tepat adalah…', opts:['あいめい','ぞんまい','あいまい','げんまい'], a:2,
+   d:'曖昧 dibaca あいまい, artinya samar atau tidak jelas.'},
+  {q:'電車が遅れたので、約束の時間に遅れざるを____。', opts:['限らない','過ぎない','足りない','得ない'], a:3,
+   d:'「〜ざるを得ない」berarti terpaksa harus ~. Karena kereta terlambat, terpaksa terlambat dari waktu janji.'},
+  {q:'「紛らわしい」artinya adalah…', opts:['menjengkelkan','membingungkan','memalukan','melelahkan'], a:1,
+   d:'紛らわしい (まぎらわしい) berarti membingungkan atau mudah tertukar.'},
+  {q:'顔色が悪い。彼は疲れている____。', opts:['わけがない','どころか','に違いない','ばかりか'], a:2,
+   d:'「〜に違いない」menyatakan kesimpulan dengan yakin: dia pasti lelah karena mukanya pucat.'},
+  {q:'「寛容」の読み方は…', opts:['かんじょう','がんよう','こうよう','かんよう'], a:3,
+   d:'寛容 dibaca かんよう, artinya toleran atau berlapang dada.'},
+  {q:'この調査は10年____行われた。', opts:['に対して','にわたって','にとって','に反して'], a:1,
+   d:'「〜にわたって」menyatakan jangkauan waktu yang luas: penelitian berlangsung selama 10 tahun.'},
+  {q:'「諦める」artinya adalah…', opts:['berusaha','melanjutkan','mengulangi','menyerah'], a:3,
+   d:'諦める (あきらめる) berarti menyerah atau berhenti berharap.'},
+  {q:'彼は頭がいい____、性格もいい。', opts:['どころか','ものの','ばかりか','あげく'], a:2,
+   d:'「〜ばかりか」berarti bukan hanya ~ bahkan ~: dia bukan hanya pintar, sifatnya juga baik.'},
+  {q:'一度引き受けた____、最後までやるべきだ。', opts:['ばかりか','からには','ことか','わけではない'], a:1,
+   d:'「〜からには」berarti karena sudah ~: karena sudah menerima, harus diselesaikan sampai akhir.'},
+  {q:'「詐欺」の読み方は…', opts:['さき','ざぎ','さぎ','しぎ'], a:2,
+   d:'詐欺 dibaca さぎ, artinya penipuan.'},
+  {q:'駅でうっかり財布を____しまった。', opts:['拾って','落として','隠して','捨てて'], a:1,
+   d:'「落とす」berarti menjatuhkan/kehilangan. Karena うっかり (tanpa sengaja), dompetnya terjatuh di stasiun.'},
+  {q:'「柔軟」の読み方は…', opts:['じゅなん','にゅうなん','しゅうなん','じゅうなん'], a:3,
+   d:'柔軟 dibaca じゅうなん, artinya fleksibel.'},
+  {q:'「我慢する」artinya adalah…', opts:['berbicara kasar','menahan diri','melupakan','membuang waktu'], a:1,
+   d:'我慢する (がまんする) berarti menahan diri atau bersabar.'},
+];
+const BADGES = [
+  {id:'b1', emo:'🔥', name:'Rantai 7 Hari', desc:'Belajar 7 hari beruntun', test:s=>s.streak>=7},
+  {id:'b2', emo:'🎌', name:'Hafal 25 Kanji', desc:'Kuasai 25 kartu kanji', test:s=>s.mastered.length>=25},
+  {id:'b3', emo:'💯', name:'Skor Sempurna', desc:'Jawab semua soal benar', test:s=>s.quizBest>=QUIZ.length},
+  {id:'b4', emo:'👑', name:'Penakluk Tantangan', desc:'Selesaikan tantangan harian', test:s=>!!s.challengeDone},
+  {id:'b5', emo:'📖', name:'Ahli Bunpou', desc:'Tandai 10 pola sudah hafal', test:s=>s.polaHafal.length>=10},
+  {id:'b6', emo:'📚', name:'Kolektor Kata', desc:'Lihat 20 detail kata', test:s=>s.kataDilihat.length>=20},
+];
+const RIVALS = [
+  {name:'Rina', xp:2450},
+  {name:'Budi', xp:2310},
+  {name:'Sari', xp:2100},
+];
+
+/* ================= STATE (localStorage) ================= */
+const LS_KEY = 'n2jago.v1';
+const dayStr = (d=new Date()) =>
+  `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const mondayStr = () => { const d=new Date(); const off=(d.getDay()+6)%7; d.setDate(d.getDate()-off); return dayStr(d); };
+
+const defaults = () => ({
+  xp:0, streak:0, lastVisit:null,
+  mastered:[], hard:[], kataDilihat:[], polaDibaca:[], polaHafal:[],
+  quizBest:0, challengeDone:null,
+  today:{date:dayStr(), count:0},
+  week:{key:mondayStr(), cards:0, soal:0, xp:0},
+});
+let state;
+try{ state = Object.assign(defaults(), JSON.parse(localStorage.getItem(LS_KEY)||'{}')); }
+catch(e){ state = defaults(); }
+if(!Array.isArray(state.polaHafal)) state.polaHafal = [];
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+
+function rolloverWindows(){
+  if(state.today.date !== dayStr()) state.today = {date:dayStr(), count:0};
+  if(state.week.key !== mondayStr()) state.week = {key:mondayStr(), cards:0, soal:0, xp:0};
+}
+function initStreak(){
+  const t = dayStr();
+  if(state.lastVisit === t) return;
+  const y = dayStr(new Date(Date.now()-86400000));
+  state.streak = (state.lastVisit === y) ? state.streak+1 : 1;
+  state.lastVisit = t;
+}
+function addXp(n){ state.xp += n; state.week.xp += n; }
+function bumpToday(){ state.today.count++; state.week.cards++; }
+
+/* ================= NAV ================= */
+const screens = document.querySelectorAll('[data-screen]');
+const navBtns = document.querySelectorAll('[data-nav]');
+function go(name, seg){
+  screens.forEach(s=>s.classList.toggle('active', s.dataset.screen===name));
+  navBtns.forEach(b=>b.classList.toggle('active', b.dataset.nav===name));
+  if(name==='belajar') setBSeg(seg||'kanji');
+  if(name==='progres') setPSeg(seg||'statistik');
+  document.getElementById('main').scrollTop = 0;
+}
+navBtns.forEach(b=>b.addEventListener('click', ()=>go(b.dataset.nav)));
+document.querySelectorAll('[data-go]').forEach(el=>
+  el.addEventListener('click', ()=>go(el.dataset.go, el.dataset.seg)));
+
+function setBSeg(seg){
+  document.querySelectorAll('[data-bseg]').forEach(b=>b.classList.toggle('active', b.dataset.bseg===seg));
+  document.querySelectorAll('[data-bpanel]').forEach(p=>p.hidden = p.dataset.bpanel!==seg);
+}
+function setPSeg(seg){
+  document.querySelectorAll('[data-pseg]').forEach(b=>b.classList.toggle('active', b.dataset.pseg===seg));
+  document.querySelectorAll('[data-ppanel]').forEach(p=>p.hidden = p.dataset.ppanel!==seg);
+}
+document.querySelectorAll('[data-bseg]').forEach(b=>b.addEventListener('click', ()=>setBSeg(b.dataset.bseg)));
+document.querySelectorAll('[data-pseg]').forEach(b=>b.addEventListener('click', ()=>setPSeg(b.dataset.pseg)));
+
+/* tampilan kanji: kartu vs list */
+function setKView(v){
+  document.querySelectorAll('[data-kview]').forEach(b=>b.classList.toggle('active', b.dataset.kview===v));
+  document.querySelectorAll('[data-kpanel]').forEach(p=>p.hidden = p.dataset.kpanel!==v);
+  if(v==='list') renderKanjiList();
+}
+document.querySelectorAll('[data-kview]').forEach(b=>b.addEventListener('click', ()=>setKView(b.dataset.kview)));
+/* ================= FLASHCARD KANJI ================= */
+let deck=[], ci=0, flipped=false, sessionXp=0, shuffleOn=false;
+const $ = id=>document.getElementById(id);
+
+function shuffleArr(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function startDeck(hardOnly){
+  let base = hardOnly ? KANJI.filter(k=>state.hard.includes(k.id)) : [...KANJI];
+  if(base.length===0) base=[...KANJI];
+  deck = shuffleOn ? shuffleArr(base) : base;
+  ci=0; flipped=false; sessionXp=0;
+  $('fcDone').hidden = true;
+  $('flashWrap').style.display = '';
+  $('fcActions').style.display = '';
+  renderCard();
+}
+function renderCard(){
+  const k = deck[ci];
+  $('flashcard').classList.remove('flipped');
+  $('cardKanji').textContent = k.k;
+  $('cardReading').textContent = k.r;
+  $('cardMeaning').textContent = k.m;
+  $('cardExample').textContent = k.ex;
+  $('cardExampleId').textContent = k.exi;
+  $('cardCounter').textContent = `Kartu ${ci+1} dari ${deck.length}`;
+  $('cardBar').style.width = (ci/deck.length*100)+'%';
+  $('masteredInfo').textContent = `${state.mastered.length} hafal`;
+}
+function flip(){ flipped=!flipped; $('flashcard').classList.toggle('flipped', flipped); }
+$('flashcard').addEventListener('click', flip);
+$('flashcard').addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); flip(); }});
+
+$('btnShuffle').addEventListener('click', ()=>{
+  shuffleOn = !shuffleOn;
+  $('btnShuffle').textContent = shuffleOn ? '🔀 Acak: aktif' : '🔀 Acak: mati';
+  $('btnShuffle').classList.toggle('on', shuffleOn);
+  $('btnShuffle').setAttribute('aria-pressed', shuffleOn);
+  startDeck(false);
+});
+
+function mark(hafal){
+  const k = deck[ci];
+  bumpToday();
+  if(hafal){
+    if(!state.mastered.includes(k.id)){ state.mastered.push(k.id); addXp(10); sessionXp+=10; }
+    state.hard = state.hard.filter(id=>id!==k.id);
+  } else {
+    if(!state.hard.includes(k.id)) state.hard.push(k.id);
+  }
+  if(state.today.count>=20 && !state.challengeDone){
+    state.challengeDone = dayStr(); addXp(50); sessionXp+=50;
+  }
+  save(); refreshStats();
+  ci++;
+  flipped=false;
+  if(ci>=deck.length){
+    $('flashWrap').style.display='none';
+    $('fcActions').style.display='none';
+    $('fcDone').hidden=false;
+    $('doneSummary').textContent = `${deck.length} kartu diulas · +${sessionXp} XP`;
+    const hc = KANJI.filter(k=>state.hard.includes(k.id)).length;
+    $('btnHardOnly').hidden = hc===0;
+    $('hardCount').textContent = hc;
+    $('cardBar').style.width='100%';
+    $('cardCounter').textContent = `Kartu ${deck.length} dari ${deck.length}`;
+  } else renderCard();
+}
+$('btnHafal').addEventListener('click', ()=>mark(true));
+$('btnUlangi').addEventListener('click', ()=>mark(false));
+$('btnRestart').addEventListener('click', ()=>startDeck(false));
+$('btnHardOnly').addEventListener('click', ()=>startDeck(true));
+
+/* ================= DAFTAR KANJI ================= */
+function renderKanjiList(){
+  $('kanjiList').innerHTML = KANJI.map(k=>{
+    const mastered = state.mastered.includes(k.id);
+    const hard = !mastered && state.hard.includes(k.id);
+    return `
+    <div class="item">
+      <div>
+        <div class="jp">${k.k} <span class="sub">${k.r}</span></div>
+        <div class="sub">${k.m}</div>
+      </div>
+      <span class="marks">
+        ${mastered ? '<span class="tag green">✓ hafal</span>' : ''}
+        ${hard ? '<span class="tag orange">↺ sulit</span>' : ''}
+      </span>
+    </div>`;
+  }).join('');
+}
+
+/* ================= KOTOBA ================= */
+function renderKata(filter=''){
+  const f = filter.trim().toLowerCase();
+  const items = KATA.filter(k=>!f || k.w.includes(filter.trim()) || k.r.includes(f) || k.m.toLowerCase().includes(f));
+  $('kataList').innerHTML = items.map(k=>`
+    <button class="item" data-kata="${k.id}">
+      <div>
+        <div class="jp">${k.w} <span class="sub">${k.r}</span></div>
+        <div class="sub">${k.m}</div>
+      </div>
+      <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+    </button>`).join('') || '<p class="muted small">Tidak ada kosakata yang cocok.</p>';
+  document.querySelectorAll('[data-kata]').forEach(el=>el.addEventListener('click', ()=>openSheet(el.dataset.kata)));
+}
+$('kataSearch').addEventListener('input', e=>renderKata(e.target.value));
+
+function openSheet(id){
+  const k = KATA.find(x=>x.id===id); if(!k) return;
+  $('sheetWord').textContent = k.w;
+  $('sheetReading').textContent = k.r;
+  $('sheetMeaning').textContent = k.m;
+  $('sheetEx').textContent = k.ex;
+  $('sheetExId').textContent = k.exi;
+  if(k.ex2){
+    $('sheetExBox2').style.display = '';
+    $('sheetEx2').textContent = k.ex2;
+    $('sheetExId2').textContent = k.exi2;
+  } else {
+    $('sheetExBox2').style.display = 'none';
+  }
+  $('scrim').classList.add('show');
+  $('sheet').classList.add('show');
+  if(!state.kataDilihat.includes(id)){ state.kataDilihat.push(id); save(); refreshStats(); }
+}
+function closeSheet(){ $('scrim').classList.remove('show'); $('sheet').classList.remove('show'); }
+$('scrim').addEventListener('click', closeSheet);
+$('sheetClose').addEventListener('click', closeSheet);
+
+/* ================= BUNPOU ================= */
+function renderPola(){
+  $('polaList').innerHTML = POLA.map(p=>{
+    const hafal = state.polaHafal.includes(p.id);
+    return `
+    <div class="card pola" data-pola="${p.id}">
+      <button aria-expanded="false">
+        <span class="lvl ${p.lv==='N3'?'n3':'n2'}">${p.lv}</span>
+        <div>
+          <div class="jp">${p.p}</div>
+          <div class="sub">${p.m}</div>
+        </div>
+        ${hafal ? '<span class="tag green" style="flex:none">✓ hafal</span>' : ''}
+        <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+      <div class="body"><div class="inner">
+        <p class="small">${p.d}</p>
+        <div class="ex-box">
+          <div>${p.ex}</div><div class="example-id">${p.exi}</div>
+        </div>
+        <div class="ex-box">
+          <div>${p.ex2}</div><div class="example-id">${p.exi2}</div>
+        </div>
+        <button class="btn ${hafal?'hafal-btn on':'btn-outline'} btn-block" data-hafal="${p.id}">
+          ${hafal ? '✓ Sudah hafal (ketuk untuk batal)' : 'Tandai sudah hafal'}
+        </button>
+      </div></div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('[data-pola] > button').forEach(btn=>btn.addEventListener('click', ()=>{
+    const box = btn.closest('.pola');
+    const opening = !box.classList.contains('open');
+    box.classList.toggle('open');
+    btn.setAttribute('aria-expanded', opening);
+    if(opening && !state.polaDibaca.includes(box.dataset.pola)){
+      state.polaDibaca.push(box.dataset.pola); save(); refreshStats();
+    }
+  }));
+  document.querySelectorAll('[data-hafal]').forEach(btn=>btn.addEventListener('click', e=>{
+    e.stopPropagation();
+    const id = btn.dataset.hafal;
+    if(state.polaHafal.includes(id)){
+      state.polaHafal = state.polaHafal.filter(x=>x!==id);
+    } else {
+      state.polaHafal.push(id);
+      addXp(5);
+    }
+    save(); refreshStats(); renderPolaKeepOpen(id);
+  }));
+}
+function renderPolaKeepOpen(openId){
+  renderPola();
+  const box = document.querySelector(`[data-pola="${openId}"]`);
+  if(box){ box.classList.add('open'); box.querySelector('button').setAttribute('aria-expanded','true'); }
+}
+/* ================= QUIZ ================= */
+let qi=0, score=0, answered=false;
+function renderQ(){
+  answered=false;
+  const q = QUIZ[qi];
+  $('qCounter').textContent = `Soal ${qi+1}/${QUIZ.length}`;
+  $('qBar').style.width = (qi/QUIZ.length*100)+'%';
+  $('qText').innerHTML = q.q.replace('____','<span class="blank">＿＿＿</span>');
+  $('qOpts').innerHTML = q.opts.map((o,i)=>`
+    <button class="opt" data-opt="${i}"><span class="key">${'ABCD'[i]}</span>${o}</button>`).join('');
+  $('qExplain').hidden = true;
+  document.querySelectorAll('[data-opt]').forEach(el=>el.addEventListener('click', ()=>pick(+el.dataset.opt)));
+}
+function pick(i){
+  if(answered) return; answered=true;
+  const q = QUIZ[qi];
+  document.querySelectorAll('[data-opt]').forEach(el=>{
+    const n=+el.dataset.opt;
+    if(n===q.a) el.classList.add('correct');
+    else if(n===i) el.classList.add('wrong');
+    el.disabled = true;
+  });
+  if(i===q.a){ score++; addXp(15); }
+  state.week.soal++;
+  save(); refreshStats();
+  $('qExplainText').textContent = q.d;
+  $('qExplain').hidden = false;
+  $('qNext').textContent = qi===QUIZ.length-1 ? 'Lihat hasil' : 'Soal berikutnya';
+}
+$('qNext').addEventListener('click', ()=>{
+  qi++;
+  if(qi>=QUIZ.length){
+    state.quizBest = Math.max(state.quizBest, score);
+    save(); refreshStats();
+    $('quizBody').style.display='none';
+    $('quizDone').hidden=false;
+    $('quizScoreTitle').textContent = `Skor kamu ${score}/${QUIZ.length}`;
+    $('quizScoreSub').textContent = score===QUIZ.length
+      ? 'Sempurna! Lencana "Skor Sempurna" terbuka. 🎉'
+      : `Kamu dapat +${score*15} XP. Coba lagi untuk skor sempurna!`;
+    $('qBar').style.width='100%';
+  } else renderQ();
+});
+$('quizRetry').addEventListener('click', ()=>{
+  qi=0; score=0;
+  $('quizDone').hidden=true;
+  $('quizBody').style.display='';
+  renderQ();
+});
+
+/* ================= STATS / TANTANGAN ================= */
+const pct = (a,b)=>Math.round(a/b*100);
+function refreshStats(){
+  rolloverWindows();
+  $('streakNum').textContent = state.streak;
+  $('streakBig').textContent = state.streak;
+  const overall = Math.round((pct(state.mastered.length,KANJI.length)+pct(state.kataDilihat.length,KATA.length)+pct(state.polaHafal.length,POLA.length)+pct(state.quizBest,QUIZ.length))/4);
+  $('ringPct').textContent = overall+'%';
+  $('ringFg').style.strokeDashoffset = 226.2*(1-overall/100);
+  $('homeKanjiStat').textContent = `${state.mastered.length} dari ${KANJI.length} kanji hafal`;
+  $('homeQuizStat').textContent = state.quizBest>0 ? `Skor latihan terbaik: ${state.quizBest}/${QUIZ.length}` : 'Skor latihan terbaik: –';
+  const next = KANJI.find(k=>!state.mastered.includes(k.id));
+  $('resumeTitle').textContent = next ? 'Flashcard Kanji' : 'Semua kanji terkuasai 🎉';
+  $('resumeSub').textContent = next ? `Berikutnya: ${next.k} (${next.r})` : 'Ulas lagi biar makin mantap';
+  const ch = Math.min(state.today.count,20);
+  $('homeChallengeCount').textContent = `${ch}/20`;
+  $('homeChallengeBar').style.width = (ch/20*100)+'%';
+  $('chCount').textContent = `${ch}/20`;
+  $('chBar').style.width = (ch/20*100)+'%';
+  const done = !!state.challengeDone || state.today.count>=20;
+  $('chStatus').textContent = done ? 'Selesai hari ini 🎉' : 'Belum selesai';
+  $('chGo').textContent = done ? 'Ulas kartu lagi' : 'Kerjakan sekarang';
+  $('pctKanji').textContent = pct(state.mastered.length,KANJI.length)+'%';
+  $('barKanji').style.width = pct(state.mastered.length,KANJI.length)+'%';
+  $('pctKotoba').textContent = pct(state.kataDilihat.length,KATA.length)+'%';
+  $('barKotoba').style.width = pct(state.kataDilihat.length,KATA.length)+'%';
+  $('pctBunpou').textContent = pct(state.polaHafal.length,POLA.length)+'%';
+  $('barBunpou').style.width = pct(state.polaHafal.length,POLA.length)+'%';
+  $('pctSoal').textContent = pct(state.quizBest,QUIZ.length)+'%';
+  $('barSoal').style.width = pct(state.quizBest,QUIZ.length)+'%';
+  $('weekCards').textContent = state.week.cards;
+  $('weekSoal').textContent = state.week.soal;
+  $('weekXp').textContent = state.week.xp;
+  const days=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+  let html='';
+  for(let i=6;i>=0;i--){
+    const d=new Date(Date.now()-i*86400000);
+    const on = i < Math.min(state.streak,7);
+    html+=`<div class="day"><span class="dot ${on?'on':''}">${on?'🔥':''}</span>${days[d.getDay()]}</div>`;
+  }
+  $('dayDots').innerHTML = html;
+  $('badgeGrid').innerHTML = BADGES.map(b=>{
+    const earned = b.test(state);
+    return `<div class="badge ${earned?'':'locked'}">
+      <span class="emo">${b.emo}</span><b>${b.name}</b>
+      <span>${earned?'Terbuka!':b.desc}</span></div>`;
+  }).join('');
+  const me = {name:'Kamu', xp:2280+state.xp, me:true};
+  const rows = [...RIVALS, me].sort((a,b)=>b.xp-a.xp);
+  $('leaderboard').innerHTML = rows.map((r,i)=>`
+    <div class="lb-row ${r.me?'me':''}">
+      <span class="rank">${i+1}</span><b>${r.name}</b>
+      <span class="xp">${r.xp.toLocaleString('id-ID')} XP</span>
+    </div>`).join('');
+  /* segarkan tanda di daftar kanji bila sedang terlihat */
+  if(!document.querySelector('[data-kpanel="list"]').hidden) renderKanjiList();
+}
+
+/* ================= RESET & INIT ================= */
+$('btnReset').addEventListener('click', ()=>{
+  if(!confirm('Hapus semua progres lokal? Tindakan ini tidak bisa dibatalkan.')) return;
+  state = defaults(); initStreak(); save();
+  startDeck(false); qi=0; score=0;
+  $('quizDone').hidden=true; $('quizBody').style.display='';
+  renderQ(); renderPola(); refreshStats();
+});
+
+$('resumeBtn').addEventListener('click', ()=>{ go('belajar','kanji'); });
+
+function greeting(){
+  const h = new Date().getHours();
+  if(h>=4 && h<11) return 'Selamat pagi! 👋';
+  if(h>=11 && h<15) return 'Selamat siang! ☀️';
+  if(h>=15 && h<18) return 'Selamat sore! 🌤️';
+  return 'Selamat malam! 🌙';
+}
+$('greeting').textContent = greeting();
+
+function applyHash(){
+  const h = location.hash.replace('#','');
+  if(!h){ go('home'); return; }
+  const [scr,seg] = h.split('-');
+  if(['home','belajar','soal','progres'].includes(scr)) go(scr,seg);
+}
+window.addEventListener('hashchange', applyHash);
+
+$('mKanjiCount').textContent = `${KANJI.length} kartu`;
+$('mKataCount').textContent = `${KATA.length} kata`;
+$('mPolaCount').textContent = `${POLA.length} pola`;
+$('mQuizCount').textContent = `${QUIZ.length} soal`;
+
+rolloverWindows();
+initStreak();
+save();
+renderKata();
+renderPola();
+renderQ();
+startDeck(false);
+refreshStats();
+applyHash();
+</script>
+</body>
+</html>
