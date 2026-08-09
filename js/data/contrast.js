@@ -1,0 +1,75 @@
+const CONTRAST = [
+  {id:'g1', title:'わけ系列', desc:'Empat pola わけ yang paling sering tertukar.',
+   items:[
+     ['〜わけだ','Kesimpulan logis: "pantas saja / jadi ~".','10年も住んでいたから、詳しいわけだ。'],
+     ['〜わけではない','Sangkal SEBAGIAN: "bukan berarti ~".','全員が反対しているわけではない。'],
+     ['〜わけがない','Mustahil total: "tidak mungkin ~".','一日で終わるわけがない。'],
+     ['〜わけにはいかない','Tidak bisa (meski ingin) karena keadaan/posisi.','試験前なので遊んでいるわけにはいかない。'],
+   ],
+   qs:[
+     {q:'彼は日本に10年住んでいた。日本語が上手な____。', opts:['わけだ','わけではない','わけがない','わけにはいかない'], a:0, d:'Kesimpulan logis dari fakta (10 tahun tinggal di Jepang) → 〜わけだ.', tags:['p46','p3','p6','p47']},
+     {q:'全員が反対している____。むしろ賛成する人もいる。', opts:['わけだ','わけではない','わけがない','わけにはいかない'], a:1, d:'Menyangkal SEBAGIAN (ada juga yang setuju) → 〜わけではない.', tags:['p3','p46']},
+     {q:'こんな高いもの、学生の私に買える____。', opts:['わけだ','わけではない','わけがない','わけにはいかない'], a:2, d:'Mustahil secara keadaan ekonomi → 〜わけがない (penyangkalan total).', tags:['p6','p3']},
+   ]},
+  {id:'g2', title:'Kepastian', desc:'はずだ / に違いない / に決まっている / わけがない',
+   items:[
+     ['〜はずだ','Ekspektasi logis: "seharusnya ~" berdasarkan rencana/kebiasaan.','彼ならもう着いているはずだ。'],
+     ['〜に違いない','Yakin kuat berdasarkan BUKTI yang terlihat.','顔色が悪い。疲れているに違いない。'],
+     ['〜に決まっている','Yakin dengan nada kasual/emosional.','そんなのは嘘に決まっている。'],
+     ['〜わけがない','Mustahil: penyangkalan total.','彼が犯人なわけがない。'],
+   ],
+   qs:[
+     {q:'彼は毎日必ず来る人だから、今日も来る____。', opts:['はずだ','に違いない','わけがない','ものか'], a:0, d:'Ekspektasi berdasarkan kebiasaan/rencana → 〜はずだ.', tags:['p2','p6']},
+     {q:'顔色が真っ青だ。彼は疲れている____。', opts:['はずだ','に違いない','わけがない','どころか'], a:1, d:'Keyakinan kuat dari bukti yang terlihat (muka pucat) → 〜に違いない.', tags:['p2','p45']},
+     {q:'あのチームは最弱だ。優勝できる____。', opts:['はずだ','に違いない','わけがない','ことだ'], a:2, d:'Mustahil menurut logika → 〜わけがない.', tags:['p6','p2']},
+   ]},
+  {id:'g3', title:'Sebab & Hasil', desc:'ので / から / ため / せいで / おかげで',
+   items:[
+     ['〜ので','Sebab netral dan sopan; aman untuk pengumuman.','雨なので中止します。'],
+     ['〜から','Sebab subjektif/kasual.','疲れたから休む。'],
+     ['〜ため','Sebab formal, atau tujuan (〜のため).','工事のため通行できません。'],
+     ['〜せいで','Sebab NEGATIF; nada menyalahkan.','寝不足のせいで頭が痛い。'],
+     ['〜おかげで','Sebab POSITIF; rasa terima kasih.','先生のおかげで合格した。'],
+   ],
+   qs:[
+     {q:'電車が遅れた____、会議に間に合わなかった。', opts:['ので','から','ため','せいで'], a:3, d:'Hasil negatif + nada menyalahkan → 〜せいで.', tags:['p14','p13']},
+     {q:'先生の指導の____、合格できました。', opts:['せいで','おかげで','わけで','くせに'], a:1, d:'Hasil positif + rasa terima kasih → 〜おかげで.', tags:['p13','p14']},
+     {q:'（掲示）工事中の____、この道路は通行できません。', opts:['から','ので','ため','せいで'], a:2, d:'Pengumuman formal tertulis → 〜ため.', tags:['p14']},
+   ]},
+  {id:'g4', title:'Perbandingan & Sudut Pandang', desc:'に比べて / に対して / にとって / によって',
+   items:[
+     ['〜に比べて','Perbandingan objektif dua hal.','去年に比べて暑い。'],
+     ['〜に対して','Arah sikap/tindakan; juga "sedangkan".','質問に対して答える。'],
+     ['〜にとって','Sudut pandang si penilai: "bagi ~".','子供にとって良い環境だ。'],
+     ['〜によって','Pelaku pasif formal / cara / "tergantung".','人によって意見が違う。'],
+   ],
+   qs:[
+     {q:'去年____、今年は雨が多い。', opts:['に比べて','に対して','にとって','によって'], a:0, d:'Perbandingan dua tahun secara objektif → 〜に比べて.', tags:['p8','p9']},
+     {q:'この漢字は外国人____難しい。', opts:['に比べて','に対して','にとって','によって'], a:2, d:'Sudut pandang orang asing → 〜にとって.', tags:['p10','p9']},
+     {q:'先生____失礼なことを言ってはいけない。', opts:['に比べて','に対して','にとって','によって'], a:1, d:'Target/arah sikap (kepada guru) → 〜に対して.', tags:['p9','p10']},
+   ]},
+  {id:'g5', title:'Kecenderungan & Kemungkinan', desc:'がち / っぽい / 気味 / おそれがある / かねない',
+   items:[
+     ['〜がち','Sering terjadi (kecenderungan agak negatif).','最近忘れがちだ。'],
+     ['〜っぽい','Kesan sifat: "-nya / seperti"; kasual.','彼は怒りっぽい。'],
+     ['〜気味','"Agak / sedikit" (gejala, keadaan).','疲れ気味だ。'],
+     ['〜おそれがある','Kemungkinan buruk; formal, peringatan.','橋が壊れるおそれがある。'],
+     ['〜かねない','"Bisa saja (berakibat buruk)" — kekhawatiran.','<ruby>誤解<rt>ごかい</rt></ruby>を招きかねない。'],
+   ],
+   qs:[
+     {q:'最近、疲れ____だ。少し休んだ方がいい。', opts:['がち','っぽい','気味','すぎ'], a:2, d:'"Agak lelah" (gejala ringan) → 〜気味.', tags:['p19','p20']},
+     {q:'（警報）この橋は崩壊する____。', opts:['気味','っぽい','がち','おそれがある'], a:3, d:'Peringatan formal tentang kemungkinan buruk → 〜おそれがある.', tags:['p15','p16']},
+     {q:'彼は遅刻し____だから、気をつけた方がいい。', opts:['がち','気味','っぽい','かねない'], a:0, d:'Kecenderungan berulang yang negatif → 〜がち.', tags:['p19','p20']},
+   ]},
+  {id:'g6', title:'Penyangkalan', desc:'わけではない / わけがない / どころか',
+   items:[
+     ['〜わけではない','Sangkal SEBAGIAN: "bukan berarti ~".','嫌いなわけではない。'],
+     ['〜わけがない','Mustahil total.','終わるわけがない。'],
+     ['〜どころか','"Jangankan ~, justru ~" (yang dikatakan justru sebaliknya).','忙しくて旅行どころではない。'],
+   ],
+   qs:[
+     {q:'彼女は歌が下手な____。実はとても上手だ。', opts:['わけがない','わけではない','どころか','はずがない'], a:1, d:'Sangkal sebagian (kenyataannya justru bagus) → 〜わけではない.', tags:['p3','p6']},
+     {q:'忙しくて、旅行____。仕事が山積みだ。', opts:['わけだ','わけではない','どころか','ばかりか'], a:2, d:'"Jangankan traveling…" → 〜どころか.', tags:['p3','p4']},
+     {q:'一日でこの分厚い本を全部読める____。', opts:['わけがない','わけではない','どころか','ものか'], a:0, d:'Mustahil secara logika → 〜わけがない.', tags:['p6','p3']},
+   ]},
+];

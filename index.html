@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>N2 Jago — Persiapan JLPT N2</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="phone">
+  <header class="appbar">
+    <div class="brand"><span class="logo">日</span> N2 Jago</div>
+    <button class="toggle-btn" id="btnFuri" style="min-height:36px; padding:6px 12px; margin-right:8px" aria-label="Pengaturan furigana" title="Pengaturan furigana">あ</button>
+    <span class="pill" id="streakPill" aria-label="Rantai belajar">🔥 <span id="streakNum">0</span> hari</span>
+  </header>
+
+  <main id="main">
+    <!-- ============ BERANDA ============ -->
+    <section class="screen" data-screen="home">
+      <div class="greet">
+        <h1 id="greeting">Selamat pagi! 👋</h1>
+        <p id="greetSub">Program belajar N3 → N2, siap dilanjutkan?</p>
+      </div>
+
+      <div class="card tint mt16" id="diagCard">
+        <div id="diagHomeBody"></div>
+      </div>
+
+      <div class="card mt16">
+        <div class="label">Jalur belajar N3 → N2</div>
+        <div class="path-list mt12" id="pathList"></div>
+      </div>
+
+      <div class="card mt16">
+        <div class="row">
+          <div class="ring" role="img" aria-label="Persentase persiapan">
+            <svg width="84" height="84" viewBox="0 0 84 84">
+              <circle cx="42" cy="42" r="36" fill="none" stroke="var(--surface2)" stroke-width="8"/>
+              <circle id="ringFg" cx="42" cy="42" r="36" fill="none" stroke="var(--accent)" stroke-width="8"
+                stroke-linecap="round" stroke-dasharray="226.2" stroke-dashoffset="226.2"/>
+            </svg>
+            <div class="pct" id="ringPct">0%</div>
+          </div>
+          <div class="grow">
+            <div class="label">Persiapan N2</div>
+            <div class="mt8 small" id="homeKanjiStat">0 kanji hafal</div>
+            <div class="small muted" id="homeQuizStat">Skor latihan terbaik: –</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card tint mt16">
+        <div class="label">Lanjut belajar</div>
+        <div class="mt8" style="font-size:18px; font-weight:700" id="resumeTitle">Flashcard Kanji</div>
+        <div class="small muted" id="resumeSub">Mulai sesi kartu pertamamu</div>
+        <button class="btn btn-primary btn-block mt12" id="resumeBtn">Lanjutkan</button>
+      </div>
+
+      <h2 class="section mt24">Menu materi</h2>
+      <div class="grid2 mt12">
+        <button class="materi" data-go="belajar" data-seg="kanji">
+          <span class="glyph">漢</span><b>Kanji</b><span id="mKanjiCount">Flashcard N2</span>
+        </button>
+        <button class="materi" data-go="belajar" data-seg="kotoba">
+          <span class="glyph">語</span><b>Kotoba</b><span id="mKataCount">Kosakata</span>
+        </button>
+        <button class="materi" data-go="belajar" data-seg="bunpou">
+          <span class="glyph">文</span><b>Bunpou</b><span id="mPolaCount">Pola kalimat</span>
+        </button>
+        <button class="materi" data-go="belajar" data-seg="bacaan">
+          <span class="glyph">読</span><b>Bacaan</b><span id="mReadCount">Dokkai N2</span>
+        </button>
+      </div>
+
+      <div class="card mt24">
+        <div class="row between">
+          <div>
+            <div class="label">Tantangan harian</div>
+            <div class="mt8" style="font-weight:600">Ulas 20 kartu hari ini</div>
+          </div>
+          <b id="homeChallengeCount" style="color:var(--orange)">0/20</b>
+        </div>
+        <div class="bar orange mt12"><i id="homeChallengeBar"></i></div>
+        <button class="btn btn-outline btn-block mt12" data-go="progres" data-seg="tantangan">Lihat tantangan</button>
+      </div>
+    </section>
+
+    <!-- ============ BELAJAR ============ -->
+    <section class="screen" data-screen="belajar">
+      <div class="seg seg5" role="tablist" aria-label="Materi">
+        <button data-bseg="kanji" class="active" role="tab">Kanji</button>
+        <button data-bseg="kotoba" role="tab">Kotoba</button>
+        <button data-bseg="bunpou" role="tab">Bunpou</button>
+        <button data-bseg="kontras" role="tab">Kontras</button>
+        <button data-bseg="bacaan" role="tab">Bacaan</button>
+      </div>
+
+      <!-- ====== KANJI ====== -->
+      <div data-bpanel="kanji">
+        <div class="seg mini mt16" role="tablist" aria-label="Tampilan kanji">
+          <button data-kview="kartu" class="active" role="tab">🃏 Kartu</button>
+          <button data-kview="list" role="tab">📋 Daftar</button>
+        </div>
+
+        <div data-kpanel="kartu">
+          <div class="row between mt16">
+            <span class="small muted" id="cardCounter">Kartu 1</span>
+            <button class="toggle-btn" id="btnShuffle" aria-pressed="false">🔀 Acak: mati</button>
+          </div>
+          <div class="row between mt8">
+            <span class="small" style="color:var(--green); font-weight:600" id="masteredInfo">0 hafal</span>
+          </div>
+          <div class="bar mt8"><i id="cardBar"></i></div>
+
+          <div class="flash-wrap mt16" id="flashWrap">
+            <div class="flashcard" id="flashcard" role="button" tabindex="0" aria-label="Kartu kanji, ketuk untuk membalik">
+              <div class="face front">
+                <div class="kanji-big" id="cardKanji">曖昧</div>
+                <div class="hint">Ketuk kartu untuk membalik</div>
+              </div>
+              <div class="face back">
+                <div class="reading" id="cardReading">あいまい</div>
+                <div class="meaning" id="cardMeaning">samar, ambigu</div>
+                <div class="mt8">
+                  <div class="example" id="cardExample"></div>
+                  <div class="example-id" id="cardExampleId"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fc-actions" id="fcActions">
+            <button class="btn btn-orange" id="btnUlangi">↺ Ulangi</button>
+            <button class="btn btn-green" id="btnHafal">✓ Hafal</button>
+          </div>
+
+          <div class="card done mt16" id="fcDone" hidden>
+            <div class="big">🎉</div>
+            <h2 class="section mt8">Sesi selesai!</h2>
+            <p class="muted small mt8" id="doneSummary">Kartu diulas</p>
+            <div class="fc-actions" style="grid-template-columns:1fr; margin-top:16px">
+              <button class="btn btn-orange btn-block" id="btnHardOnly" hidden>↺ Ulangi kartu sulit (<span id="hardCount">0</span>)</button>
+              <button class="btn btn-primary btn-block" id="btnRestart">Mulai sesi baru</button>
+            </div>
+          </div>
+        </div>
+
+        <div data-kpanel="list" hidden>
+          <p class="small muted mt16">Ketuk kanji untuk onyomi/kunyomi + kata turunan. Tanda <span class="tag green" style="font-size:12px; padding:2px 8px">✓ hafal</span> muncul otomatis setelah kamu menandai kartu.</p>
+          <input type="search" class="search mt12" id="kanjiSearch" placeholder="Cari kanji / reading / arti / level…" aria-label="Cari kanji">
+          <div class="list mt12" id="kanjiList"></div>
+        </div>
+      </div>
+
+      <!-- ====== KOTOBA ====== -->
+      <div data-bpanel="kotoba" hidden>
+        <input type="search" class="search mt16" id="kataSearch" placeholder="Cari kosakata…" aria-label="Cari kosakata">
+        <div class="list mt12" id="kataList"></div>
+      </div>
+
+      <!-- ====== BUNPOU ====== -->
+      <div data-bpanel="bunpou" hidden>
+        <p class="small muted mt16">Ketuk pola untuk penjelasan lengkap: 接続, nuansa, kesalahan umum, pola mirip, contoh ber-furigana. <span class="lvl n2">N2</span> inti, <span class="lvl n3">N3</span> fondasi.</p>
+        <div class="list mt12" id="polaList"></div>
+      </div>
+
+      <!-- ====== KONTRAS ====== -->
+      <div data-bpanel="kontras" hidden>
+        <p class="small muted mt16">Kelompok pola yang sering tertukar. Pelajari perbedaan nuansanya, lalu kerjakan latihannya.</p>
+        <div class="list mt12" id="kontrasList"></div>
+      </div>
+
+      <!-- ====== BACAAN ====== -->
+      <div data-bpanel="bacaan" hidden>
+        <div id="readMenu">
+          <p class="small muted mt16">Baca teksnya, jawab soal pemahaman: ide utama, detail, alasan, inferensi, tujuan penulis.</p>
+          <div class="list mt12" id="readList"></div>
+          <div class="card mt24">
+            <div class="label">🎧 TTS Listening Practice</div>
+            <p class="small muted mt8">Dibacakan text-to-speech Jepang bawaan perangkatmu (bukan audio JLPT resmi). Transkrip tersembunyi sampai kamu menjawab.</p>
+            <div id="listenBox" class="mt12"></div>
+          </div>
+        </div>
+        <div id="readView" hidden>
+          <button class="toggle-btn" id="readBack">← Semua bacaan</button>
+          <h2 class="section mt16" id="readTitle"></h2>
+          <div class="row mt8" id="readMeta"></div>
+          <div class="read-body mt12" id="readBody"></div>
+          <div id="readQuiz" class="mt16"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SOAL (PUSAT LATIHAN) ============ -->
+    <section class="screen" data-screen="soal">
+      <div id="packMenu">
+        <div class="label">Pusat latihan</div>
+        <p class="small muted mt8">Pilih paket sesuai tahap belajarmu. Setiap jawaban salah dicatat untuk review adaptif.</p>
+        <div class="list mt12" id="packList"></div>
+        <div class="card tint mt16">
+          <div class="label">N2 模擬試験</div>
+          <div class="mt8" style="font-weight:700; font-size:17px">Mini Mock N2 (tanpa listening)</div>
+          <div class="small muted mt8">Mini Mock - 24 soal - 25 menit - hasil berupa Practice Score</div>
+          <button class="btn btn-primary btn-block mt12" id="btnMock">Mulai simulasi</button>
+          <div class="small muted mt8" id="mockBestLine"></div>
+        </div>
+      </div>
+
+      <div id="quizRun" hidden>
+        <div class="row between">
+          <span class="label" id="qPackName">Paket</span>
+          <span class="small muted" id="qCounter">Soal 1</span>
+        </div>
+        <div class="bar mt8"><i id="qBar"></i></div>
+        <div id="quizBody">
+          <div class="card mt16">
+            <p class="qtype" id="qType"></p>
+            <p class="q-sentence mt8" id="qText"></p>
+            <div class="opts" id="qOpts"></div>
+          </div>
+          <div class="explain" id="qExplain" hidden>
+            <b>Pembahasan</b>
+            <p class="mt8" id="qExplainText"></p>
+            <button class="btn btn-primary btn-block mt12" id="qNext">Soal berikutnya</button>
+          </div>
+        </div>
+        <div class="card done mt16" id="quizDone" hidden>
+          <div class="big">📝</div>
+          <h2 class="section mt8" id="quizScoreTitle">Skor kamu</h2>
+          <p class="muted small mt8" id="quizScoreSub"></p>
+          <button class="btn btn-primary btn-block mt16" id="quizRetry">Ulangi paket ini</button>
+          <button class="btn btn-outline btn-block mt12" id="quizBack">Pilih paket lain</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIAGNOSTIC TEST ============ -->
+    <section class="screen" data-screen="diag">
+      <div id="diagIntro">
+        <h2 class="section">🧭 Tes Diagnostik N3 → N2</h2>
+        <p class="small muted mt8">24 soal, sekitar 7 menit - Kanji, Kosakata, dan Grammar N3 &amp; N2. Bukan tes lulus/gagal: ini hasil diagnostik awal (indikasi kemampuan) untuk memetakan rekomendasi materi yang tepat. Soal diacak dari bank 474 soal dengan riwayat sesi - setiap tes menampilkan kombinasi yang berbeda.</p>
+        <div class="card mt16">
+          <div class="label">Yang diukur</div>
+          <div class="small mt8">N3: Kanji · Kosakata · Grammar</div>
+          <div class="small">N2: Kanji · Kosakata · Grammar</div>
+        </div>
+        <button class="btn btn-primary btn-block mt16" id="btnDiagStart">Mulai tes</button>
+        <button class="btn btn-outline btn-block mt12" data-goscreen="home">Nanti saja</button>
+      </div>
+      <div id="diagRun" hidden>
+        <div class="row between">
+          <span class="label" id="dCat">N3 · Kanji</span>
+          <span class="small muted" id="dCounter"></span>
+        </div>
+        <div class="bar mt8"><i id="dBar"></i></div>
+        <div class="card mt16">
+          <p class="q-sentence" id="dText"></p>
+          <div class="opts" id="dOpts"></div>
+        </div>
+      </div>
+      <div id="diagResult" hidden>
+        <h2 class="section">Profil kemampuanmu</h2>
+        <p class="small muted mt8">Indikasi awal dari jawaban tesmu barusan - 4 soal per kategori, bukan pengukuran presisi.</p>
+        <div class="card mt12" id="diagBars"></div>
+        <div class="explain mt16"><b>Rekomendasi</b><p class="mt8" id="diagReco"></p><div class="mt8" id="diagRecoLinks"></div></div>
+        <button class="btn btn-outline btn-block mt16" id="btnDiagReview" style="display:none">🔎 Lihat soal yang salah (<span id="revCount">0</span>)</button>
+        <p class="small muted mt12" id="revAllRight" style="display:none; text-align:center">🎉 Semua soal benar — tidak ada yang perlu di-review.</p>
+        <button class="btn btn-primary btn-block mt16" id="btnDiagDone">Lihat jalur belajar</button>
+        <button class="btn btn-outline btn-block mt12" id="btnDiagRetake">Ulangi tes</button>
+      </div>
+      <div id="diagReview" hidden>
+        <button class="toggle-btn" id="revBack">← Kembali</button>
+        <h2 class="section mt16">🔎 Soal yang perlu diperbaiki</h2>
+        <p class="small muted mt8" id="revSummary"></p>
+        <div class="seg mini mt12" role="tablist" aria-label="Filter kategori">
+          <button data-revcat="all" class="active" role="tab">Semua</button>
+          <button data-revcat="kanji" role="tab">Kanji</button>
+          <button data-revcat="kotoba" role="tab">Kosakata</button>
+          <button data-revcat="grammar" role="tab">Grammar</button>
+        </div>
+        <div class="seg mini mt8" role="tablist" aria-label="Filter level">
+          <button data-revlv="all" class="active" role="tab">Semua level</button>
+          <button data-revlv="N3" role="tab">N3</button>
+          <button data-revlv="N2" role="tab">N2</button>
+        </div>
+        <div class="list mt12" id="revList"></div>
+      </div>
+    </section>
+
+    <!-- ============ MOCK TEST ============ -->
+    <section class="screen" data-screen="mock">
+      <div id="mockIntro">
+        <h2 class="section">🏁 N2 模擬試験</h2>
+        <p class="small muted mt8">24 soal · timer 25 menit. Bagian: 文字・語彙 (8 soal), 文法 (10 soal), 読解 (6 soal). Listening tidak dihitung. Hasil berupa Practice Score + analisis kelemahan, bukan prediksi skor resmi JLPT.</p>
+        <button class="btn btn-primary btn-block mt16" id="btnMockStart">Mulai (timer langsung berjalan)</button>
+        <button class="btn btn-outline btn-block mt12" data-goscreen="soal">Kembali</button>
+      </div>
+      <div id="mockRun" hidden>
+        <div class="row between">
+          <span class="label" id="mSec">文字・語彙</span>
+          <span class="timer" id="mTimer">25:00</span>
+        </div>
+        <div class="row between mt8">
+          <span class="small muted" id="mCounter"></span>
+          <button class="toggle-btn" id="mReview">☰ Review</button>
+        </div>
+        <div class="bar mt8"><i id="mBar"></i></div>
+        <div class="card mt16">
+          <p class="q-sentence" id="mText"></p>
+          <div class="opts" id="mOpts"></div>
+        </div>
+        <div class="fc-actions" style="grid-template-columns:1fr 1fr 1fr">
+          <button class="btn btn-outline" id="mPrev">←</button>
+          <button class="btn btn-outline" id="mSkip">Skip</button>
+          <button class="btn btn-primary" id="mNext">→</button>
+        </div>
+        <div class="card mt16" id="mGridCard" hidden>
+          <div class="label">Review soal</div>
+          <div class="mock-grid mt12" id="mGrid"></div>
+        </div>
+        <button class="btn btn-green btn-block mt16" id="mSubmit">Kumpulkan jawaban</button>
+      </div>
+      <div id="mockResult" hidden>
+        <div class="card done">
+          <div class="big">🏁</div>
+          <h2 class="section mt8">Practice Score: <span id="mScore"></span></h2>
+          <p class="muted small mt8">Estimasi performa latihan — bukan skor resmi JLPT.</p>
+        </div>
+        <div class="card mt16"><div class="label">Breakdown per bagian</div><div id="mBreak" class="mt4"></div></div>
+        <div class="card mt16"><div class="label">Analisis kelemahan</div><div id="mWeak" class="mt8"></div></div>
+        <button class="btn btn-orange btn-block mt16" id="mWeakBtn">🎯 Latihan kelemahan dari simulasi</button>
+        <button class="btn btn-outline btn-block mt12" id="mHome">Kembali ke pusat latihan</button>
+      </div>
+    </section>
+
+    <!-- ============ PROGRES ============ -->
+    <section class="screen" data-screen="progres">
+      <div class="seg" role="tablist" aria-label="Progres">
+        <button data-pseg="statistik" class="active" role="tab">Statistik</button>
+        <button data-pseg="tantangan" role="tab">Tantangan</button>
+      </div>
+
+      <div data-ppanel="statistik">
+        <div class="card mt16">
+          <div class="label">Rantai belajar</div>
+          <div style="font-size:28px; font-weight:700" class="mt8"><span id="streakBig">0</span> hari 🔥</div>
+          <div class="days" id="dayDots"></div>
+        </div>
+
+        <div class="card mt16">
+          <div class="label">Progres akademik</div>
+          <div class="mt4" id="acadBars"></div>
+        </div>
+
+        <div class="card mt16">
+          <div class="label">Statistik penguasaan materi</div>
+          <div class="statbar">
+            <div class="top"><span>Kanji</span><b id="pctKanji">0%</b></div>
+            <div class="bar"><i id="barKanji"></i></div>
+          </div>
+          <div class="statbar">
+            <div class="top"><span>Kotoba</span><b id="pctKotoba">0%</b></div>
+            <div class="bar"><i id="barKotoba"></i></div>
+          </div>
+          <div class="statbar">
+            <div class="top"><span>Bunpou</span><b id="pctBunpou">0%</b></div>
+            <div class="bar"><i id="barBunpou"></i></div>
+          </div>
+          <div class="statbar">
+            <div class="top"><span>Latihan soal</span><b id="pctSoal">0%</b></div>
+            <div class="bar"><i id="barSoal"></i></div>
+          </div>
+        </div>
+
+        <div class="card mt16">
+          <div class="label">Riwayat kesalahan</div>
+          <p class="small muted mt8">Pola yang paling sering kamu lewati — inilah peta kelemahanmu.</p>
+          <div id="errList" class="mt8"></div>
+          <button class="btn btn-orange btn-block mt12" id="btnWeak">🎯 Latihan kelemahan saya</button>
+        </div>
+
+        <div class="label mt24">Ringkasan minggu ini</div>
+        <div class="tiles mt12">
+          <div class="tile"><b id="weekCards">0</b><span>kartu diulas</span></div>
+          <div class="tile"><b id="weekSoal">0</b><span>soal dikerjakan</span></div>
+          <div class="tile"><b id="weekXp">0</b><span>XP didapat</span></div>
+        </div>
+
+        <div style="text-align:center" class="mt24">
+          <button class="reset-link" id="btnReset">Atur ulang semua data lokal</button>
+        </div>
+      </div>
+
+      <div data-ppanel="tantangan" hidden>
+        <div class="card tint mt16">
+          <div class="row between">
+            <div class="label">Tantangan harian</div>
+            <span class="tag" id="chReward">+50 XP</span>
+          </div>
+          <div class="mt8" style="font-weight:700; font-size:17px">Ulas 20 kartu hari ini</div>
+          <div class="row between mt8 small">
+            <span class="muted" id="chStatus">Belum selesai</span>
+            <b id="chCount">0/20</b>
+          </div>
+          <div class="bar orange mt8"><i id="chBar"></i></div>
+          <button class="btn btn-primary btn-block mt12" id="chGo" data-go="belajar" data-seg="kanji">Kerjakan sekarang</button>
+        </div>
+
+        <h2 class="section mt24">Lencana prestasi</h2>
+        <div class="grid2 mt12" id="badgeGrid"></div>
+
+        <h2 class="section mt24">Papan peringkat</h2>
+        <p class="small muted mt8">Peringkat latihan bersama teman belajarmu.</p>
+        <div class="lb mt12" id="leaderboard"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar" aria-label="Navigasi utama">
+    <button data-nav="home" class="active">
+      <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
+      Beranda
+    </button>
+    <button data-nav="belajar">
+      <svg viewBox="0 0 24 24"><path d="M12 6c-2-1.5-4.5-2-8-2v14c3.5 0 6 .5 8 2 2-1.5 4.5-2 8-2V4c-3.5 0-6 .5-8 2z"/><path d="M12 6v14"/></svg>
+      Belajar
+    </button>
+    <button data-nav="soal">
+      <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+      Soal
+    </button>
+    <button data-nav="progres">
+      <svg viewBox="0 0 24 24"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>
+      Progres
+    </button>
+  </nav>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Detail">
+  <div class="grab"></div>
+  <div id="sheetContent"></div>
+  <button class="btn btn-outline btn-block mt16" id="sheetClose">Tutup</button>
+</div>
+
+<div class="scrim" id="furiScrim"></div>
+<div class="sheet" id="furiSheet" role="dialog" aria-modal="true" aria-label="Pengaturan furigana">
+  <div class="grab"></div>
+  <h2 class="section">Pengaturan Furigana</h2>
+  <p class="small muted mt8">Atur furigana per bagian, masing-masing independen. Furigana hanya tampil pada konten yang punya data ruby akurat; konten tanpa data ruby dibiarkan polos, tidak ditebak.</p>
+  <div id="furiList" class="mt12"></div>
+  <button class="btn btn-outline btn-block mt16" id="furiClose">Tutup</button>
+</div>
+
+<script src="js/data/kanji.js"></script>
+<script src="js/data/kata.js"></script>
+<script src="js/data/pola.js"></script>
+<script src="js/data/diag_bank.js"></script>
+<script src="js/data/contrast.js"></script>
+<script src="js/data/reading.js"></script>
+<script src="js/data/listen.js"></script>
+<script src="js/data/quiz.js"></script>
+<script src="js/data/packs.js"></script>
+<script src="js/data/badges.js"></script>
+<script src="js/data/rivals.js"></script>
+<script src="js/data/furi_sections.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
